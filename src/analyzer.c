@@ -24,13 +24,11 @@ static void create_listing(char src[])
         sfp = fopen(src, "r");
         lfp = fopen(lfname, "w");
 
-        printf("%s\n", src);
-        printf("%s\n", lfname);
-
-        do {
-                fgets(buff, 72, (FILE*) sfp);
+        fgets(buff, 72, (FILE*) sfp);
+        while(!feof(sfp)) {
                 fputs(buff, lfp);
-        } while (!feof(sfp));
+                fgets(buff, 72, (FILE*) sfp);
+        }
 
         fclose(sfp);
         fclose(lfp);
