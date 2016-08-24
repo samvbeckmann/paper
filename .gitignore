@@ -31,3 +31,10 @@
 # Debug files
 *.dSYM/
 *.su
+
+# OS Files
+.DS_Store
+
+# Project Files
+*.listing
+/test
