@@ -59,11 +59,19 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
         char *back = buff;
 
         while (*forward != '\n') {
+                forward = ws_machine(forward, back);
+                back = forward;
+
                 struct Token token = match_token(forward, back);
+                fprintf(tfp, "%d,%s,%d,%d\n",
+                                line,
+                                token.lexeme,
+                                token.token_type,
+                                token.attribute.attribute);
 
+                forward = token.forward;
+                back = forward;
         }
-
-
 }
 
 static struct Token match_token(char *forward, char *back)
@@ -91,11 +99,6 @@ static struct Token match_token(char *forward, char *back)
         }
 
         result = relop_machine(forward, back);
-        if (result.nil != NULL) {
-                return result.token;
-        }
-
-        result = ws_machine(forward, back);
         if (result.nil != NULL) {
                 return result.token;
         }
