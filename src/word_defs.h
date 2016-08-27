@@ -31,7 +31,8 @@
 #define ID 50
 #define MULOP 60
 #define ADDOP 70
-#define STANDARD_TYPE 80
+#define RELOP 80
+#define STANDARD_TYPE 90
 #define LEXERR 99
 
 // Addops
