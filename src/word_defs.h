@@ -46,6 +46,14 @@
 #define MOD 4
 #define AND 5
 
+// Relops
+#define LT 1
+#define GT 2
+#define LT_EQ 3
+#define GT_EQ 4
+#define EQ 5
+#define NEQ 6
+
 // Standard types
 #define INTEGER 1
 #define REAL 2
