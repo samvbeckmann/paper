@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include "machines.c"
 
 static void create_listing(char src[]);
 static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp);
@@ -52,12 +53,54 @@ static void create_listing(char src[])
 
 /*
  * Adds all tokens for the line into the token file.
- * Reports lexical erros to the listing file.
+ * Reports lexical errors to the listing file.
  */
 static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
 {
-        int forward = 0;
-        int back = 0;
+        int *forward = &buff;
+        int *back = &buff;
+
+        while (*forward != '\n') {
+                struct token = match_token(forward, back);
+
+        }
 
 
+}
+
+static struct Token match_token(int *forward, int *back)
+{
+        union Optional_Token result;
+
+        result = longreal_machine(forward, back);
+        if (result != NULL) {
+                return result.token;
+        }
+
+        result = real_machine(forward, back);
+        if (result != NULL) {
+                return result.token
+        }
+
+        result = int_machine(forward, back);
+        if (result != NULL) {
+                return result.token
+        }
+
+        result = id_res_machine(forward, back);
+        if (result != NULL) {
+                return result.token
+        }
+
+        result = relop_machine(forward, back);
+        if (result != NULL) {
+                return result.token
+        }
+
+        result = ws_machine(forward, back);
+        if (result != NULL) {
+                return result.token
+        }
+
+        return catchall_machine(forward, back);
 }
