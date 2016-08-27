@@ -20,7 +20,7 @@ union Optional_Token longreal_machine(char *forward, char *back);
 union Optional_Token real_machine(char *forward, char *back);
 union Optional_Token int_machine(char *forward, char *back);
 union Optional_Token id_res_machine(char *forward, char *back);
-union Optional_Token ws_machine(char *forward, char *back);
+void ws_machine(char *forward, char *back);
 struct Token catchall_machine(char *forward, char *back);
 
 #endif

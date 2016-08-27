@@ -2,10 +2,10 @@
 #include "word_defs.h"
 #include <string.h>
 
-static union Optional_Token make_optional(char lexeme[], int token_type, int attr) {
+static union Optional_Token make_optional(char lexeme[], int type, int attr) {
         struct Token token;
         strcpy(token.lexeme, lexeme);
-        token.token_type = token_type;
+        token.token_type = type;
         token.attribute.attribute = attr;
         union Optional_Token op_token;
         op_token.token = token;
@@ -75,9 +75,13 @@ union Optional_Token id_res_machine(char *forward, char *back)
         return null_optional();
 }
 
-union Optional_Token ws_machine(char *forward, char *back)
+void ws_machine(char *forward, char *back)
 {
-        return null_optional();
+        char value;
+        do {
+                value = *forward++;
+        } while (value == ' ' || value == '\t');
+        forward--;
 }
 
 struct Token catchall_machine(char *forward, char *back)
