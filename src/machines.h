@@ -14,5 +14,11 @@ union Optional_Token {
 };
 
 union Optional_Token relop_machine(int *forward, int *back);
+union Optional_Token longreal_machine(int *forward, int *back);
+union Optional_Token real_machine(int *forward, int *back);
+union Optional_Token int_machine(int *forward, int *back);
+union Optional_Token id_res(int *forward, int *back);
+union Optional_Token ws_machine(int *forward, int *back);
+struct Token catchall_machine(int *forward, int *back);
 
 #endif
