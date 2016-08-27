@@ -2,7 +2,7 @@
 #include "word_defs.h"
 #include <string.h>
 
-static Optional_Token make_optional(char lexeme[], int token_type, int attr) {
+static union Optional_Token make_optional(char lexeme[], int token_type, int attr) {
         struct Token token;
         strcpy(token.lexeme, lexeme);
         token.token_type = token_type;
@@ -12,13 +12,13 @@ static Optional_Token make_optional(char lexeme[], int token_type, int attr) {
         return op_token;
 }
 
-static Optional_Token null_optional() {
-        Optional_Token op_token;
+static union Optional_Token null_optional() {
+        union Optional_Token op_token;
         op_token.nil = NULL;
         return op_token;
 }
 
-union Optional_Token relop_machine(int *forward, int *back)
+union Optional_Token relop_machine(char *forward, char *back)
 {
         char value = *forward++;
         switch (value) {
@@ -53,4 +53,35 @@ union Optional_Token relop_machine(int *forward, int *back)
                 forward--;
                 return null_optional();
         }
+}
+
+union Optional_Token longreal_machine(char *forward, char *back)
+{
+        return null_optional();
+}
+
+union Optional_Token real_machine(char *forward, char *back)
+{
+        return null_optional();
+}
+
+union Optional_Token int_machine(char *forward, char *back)
+{
+        return null_optional();
+}
+
+union Optional_Token id_res_machine(char *forward, char *back)
+{
+        return null_optional();
+}
+
+union Optional_Token ws_machine(char *forward, char *back)
+{
+        return null_optional();
+}
+
+struct Token catchall_machine(char *forward, char *back)
+{
+        struct Token token;
+        return token;
 }
