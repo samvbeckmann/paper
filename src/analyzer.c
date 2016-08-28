@@ -15,6 +15,10 @@ int main(int argc, char *argv[])
 
 static void create_listing(char src[])
 {
+        // struct Symbol first_symbol;
+        // first_symbol.ptr = NULL;
+        // struct Symbol *global_sym_table = &first_symbol;
+
         struct Symbol *global_sym_table = malloc(sizeof(struct Symbol));
 
         FILE *sfp;

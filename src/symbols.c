@@ -8,24 +8,17 @@
 
 struct Symbol * add_symbol(char word[], struct Symbol *sym_table)
 {
-        if (sym_table -> ptr == NULL) {
-                // struct Symbol symbol;
-                strcpy(sym_table -> word, word);
-                sym_table -> ptr = malloc(sizeof(struct Symbol));
-                // printf("Added \"%s\" : %p\n", word, &symbol);
-                return sym_table;
-        } else if (strcmp(sym_table -> word, word) == 0) {
-                // printf("ALREADY IN TABLE\n");
-                return sym_table;
-        } else {
-                // printf("Looking for \"%s\" at %p, next entry: %p\n",
-                //                 word,
-                //                 sym_table,
-                //                 sym_table -> ptr);
-                // printf("CHECKING NEXT ENTRY...\n");
-                // getchar();
-                return add_symbol(word, sym_table -> ptr);
+        struct Symbol *current = sym_table;
+        
+        while (current -> ptr != NULL) {
+                current = current -> ptr;
         }
+
+        current -> ptr = malloc(sizeof(struct Symbol));
+        strcpy(current -> ptr -> word, word);
+        current -> ptr -> ptr = NULL;
+
+        return current -> ptr;
 }
 
 union Optional_Token check_reserved_words(char word[])
