@@ -1,11 +1,11 @@
-PROGRAM number_test(input, output);
+program number_test(input, output);
 var num1, num2: integer;
 
 function fibonacci(first, second, num: integer): integer;
-BEGIN
+begin
     if num <= 0 then fibonacci := second
     else fibonacci := fibonacci(second, first + second, num - 1)
-END;
+end;
 
 function gcd(first, second: integer): integer;
 begin
@@ -13,8 +13,8 @@ begin
     else gcd := gcd(second, first mod second)
 end;
 
-function sum_below(first, second, max: integer): longInt;
-var temp: integer; total: LongInt;
+function sum_below(first, second, max: integer): integer;
+var temp total: integer;
 begin
     temp := 1;
     total := 0;
@@ -27,10 +27,10 @@ begin
     sum_below := total
 end;
 
-BEGIN
+begin
     read(num1, num2);
-    writeln(num1, 'th Fibonacci Number: ', fibonacci(0, 1, num1 - 1));
-    writeln('Greatest Common Denominator: ',  gcd(num1, num2));
-    write('Sum of multiples of ', num1, ' and ', num2, ' under 1k: ');
-    writeln(sum_below(num1, num2, 1000));
-END.
+    writeln(num1, fibonacci(0, 1, num1 - 1));
+    writeln(gcd(num1, num2));
+    write( num1, num2);
+    writeln(sum_below(num1, num2, 300));
+end.
