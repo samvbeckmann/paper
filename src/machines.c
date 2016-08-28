@@ -1,9 +1,12 @@
 #include "machines.h"
 #include "word_defs.h"
+#include "symbols.h"
 #include <string.h>
 #include <ctype.h>
 
-static union Optional_Token make_optional(
+extern inline int min(int a, int b);
+
+union Optional_Token make_optional(
                         char lexeme[],
                         int type,
                         int attr,
@@ -16,37 +19,17 @@ static union Optional_Token make_optional(
         return wrap_token(token);
 }
 
-static union Optional_Token null_optional() {
+union Optional_Token null_optional() {
         union Optional_Token op_token;
         op_token.nil = NULL;
         return op_token;
 }
 
-static union OptionalToken wrap_token(struct Token token)
+union Optional_Token wrap_token(struct Token token)
 {
         union Optional_Token op_token;
         op_token.token = token;
         return op_token;
-}
-
-static struct Symbol * add_symbol(char word[], struct Symbol *sym_table)
-{
-        if (*sym_table == NULL) {
-                struct Symbol symbol;
-                strcpy(symbol.word, word);
-                symbol.ptr = NULL;
-                return &symbol;
-        } else if (strcmp(sym_table -> word, word) == 0) {
-                return sym_table -> ptr;
-        } else {
-                return add_symbol(word, sym_tableptr);
-        }
-}
-
-static union Optional_Token check_reserved_words(char word[])
-{
-        // TODO: Implement reserved words
-        return null_optional();
 }
 
 union Optional_Token relop_machine(char *forward, char *back)
@@ -115,9 +98,12 @@ union Optional_Token id_res_machine(char *forward, struct Symbol *sym_table)
 
         union Optional_Token res = check_reserved_words(word);
         if (res.nil != NULL) {
+                res.token.forward = forward;
                 return res;
         } else {
                 struct Symbol *sym_ptr = add_symbol(word, sym_table);
+                // if (global_sym_table == NULL)
+                //         global_sym_table = sym_ptr;
                 struct Token token;
                 strcpy(token.lexeme, word);
                 token.token_type = 50;

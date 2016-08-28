@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "machines.h"
 #include "analyzer.h"
+#include "symbols.h"
 
 int main(int argc, char *argv[])
 {
@@ -13,6 +15,8 @@ int main(int argc, char *argv[])
 
 static void create_listing(char src[])
 {
+        struct Symbol *global_sym_table = malloc(sizeof(struct Symbol));
+
         FILE *sfp;
         FILE *lfp;
         FILE *tfp;
@@ -40,7 +44,7 @@ static void create_listing(char src[])
         while(!feof(sfp)) {
                 fprintf(lfp, "%-10d", ++line);
                 fputs(buff, lfp);
-                generate_tokens(line, buff, tfp, lfp);
+                generate_tokens(line, buff, tfp, lfp, global_sym_table);
                 fgets(buff, 72, (FILE*) sfp);
         }
 
@@ -53,7 +57,7 @@ static void create_listing(char src[])
  * Adds all tokens for the line into the token file.
  * Reports lexical errors to the listing file.
  */
-static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
+static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp, struct Symbol *sym_table)
 {
         char *forward = buff;
         char *back = buff;
@@ -62,7 +66,7 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
                 forward = ws_machine(forward, back);
                 back = forward;
 
-                struct Token token = match_token(forward, back);
+                struct Token token = match_token(forward, back, sym_table);
                 fprintf(tfp, "%d,%s,%d,%d\n",
                                 line,
                                 token.lexeme,
@@ -74,7 +78,7 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
         }
 }
 
-static struct Token match_token(char *forward, char *back)
+static struct Token match_token(char *forward, char *back, struct Symbol *sym_table)
 {
         union Optional_Token result;
 
@@ -93,7 +97,7 @@ static struct Token match_token(char *forward, char *back)
                 return result.token;
         }
 
-        result = id_res_machine(forward, back);
+        result = id_res_machine(forward, sym_table);
         if (result.nil != NULL) {
                 return result.token;
         }

@@ -16,10 +16,15 @@ union Optional_Token {
         struct Token token;
 };
 
-struct Symbol {
-        char word[11];
-        struct Symbol *ptr;
-};
+inline int min(int a, int b) {
+    if (a > b)
+        return b;
+    return a;
+}
+
+union Optional_Token make_optional(char lexeme[], int type, int attr, char *forward);
+union Optional_Token null_optional();
+union Optional_Token wrap_token(struct Token token);
 
 union Optional_Token relop_machine(char *forward, char *back);
 union Optional_Token longreal_machine(char *forward, char *back);
