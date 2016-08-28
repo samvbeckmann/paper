@@ -77,7 +77,7 @@ union Optional_Token int_machine(char *forward, char *back)
         return null_optional();
 }
 
-union Optional_Token id_res_machine(char *forward, struct Symbol *sym_table)
+union Optional_Token id_res_machine(char *forward)
 {
         char word[11];
         int i = 0;
@@ -101,7 +101,7 @@ union Optional_Token id_res_machine(char *forward, struct Symbol *sym_table)
                 res.token.forward = forward;
                 return res;
         } else {
-                struct Symbol *sym_ptr = add_symbol(word, sym_table);
+                struct Symbol *sym_ptr = add_symbol(word);
                 // if (global_sym_table == NULL)
                 //         global_sym_table = sym_ptr;
                 struct Token token;

@@ -10,7 +10,7 @@ struct Symbol {
 
 extern struct Symbol *global_sym_table;
 
-struct Symbol * add_symbol(char word[], struct Symbol *sym_table);
+struct Symbol * add_symbol(char word[]);
 union Optional_Token check_reserved_words(char word[]);
 
 #endif
