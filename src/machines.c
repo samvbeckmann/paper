@@ -74,20 +74,21 @@ union Optional_Token real_machine(char *forward, char *back)
 
 union Optional_Token int_machine(char *forward, char *back)
 {
-        char int_lit[11];
+        char int_lit[30];
         int i = 0;
         char value = *forward++;
         while (isdigit(value)) {
-                if (i < 10)
-                        int_lit[i] = value;
+                int_lit[i] = value;
                 value = *forward++;
                 i++;
         }
         forward--;
-        int_lit[min(10, i)] = '\0';
+        int_lit[i] = '\0';
 
         if (i == 0)
                 return null_optional();
+        else if (int_list[0] == '0' && i != 1)
+                return make_optional(int_lit, 99, 4, forward);
         else if (i > 10)
                 return make_optional(int_lit, 99, 3, forward);
         else
@@ -96,17 +97,16 @@ union Optional_Token int_machine(char *forward, char *back)
 
 union Optional_Token id_res_machine(char *forward)
 {
-        char word[11];
+        char word[30];
         int i = 0;
         char value = *forward++;
         while (isalnum(value)) {
-                if (i < 10)
-                        word[i] = value;
+                word[i] = value;
                 value = *forward++;
                 i++;
         }
         forward--;
-        word[min(10, i)] = '\0';
+        word[i] = '\0';
 
         if (i == 0)
                 return null_optional();
@@ -119,8 +119,6 @@ union Optional_Token id_res_machine(char *forward)
                 return res;
         } else {
                 struct Symbol *sym_ptr = add_symbol(word);
-                // if (global_sym_table == NULL)
-                //         global_sym_table = sym_ptr;
                 struct Token token;
                 strcpy(token.lexeme, word);
                 token.token_type = 50;
