@@ -9,8 +9,10 @@
 struct Symbol * add_symbol(char word[], struct Symbol *sym_table)
 {
         struct Symbol *current = sym_table;
-        
+
         while (current -> ptr != NULL) {
+                if (strcmp(current -> word, word) == 0)
+                        return current;
                 current = current -> ptr;
         }
 
