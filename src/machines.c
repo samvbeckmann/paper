@@ -74,7 +74,24 @@ union Optional_Token real_machine(char *forward, char *back)
 
 union Optional_Token int_machine(char *forward, char *back)
 {
-        return null_optional();
+        char int_lit[11];
+        int i = 0;
+        char value = *forward++;
+        while (isdigit(value)) {
+                if (i < 10)
+                        int_lit[i] = value;
+                value = *forward++;
+                i++;
+        }
+        forward--;
+        int_lit[min(10, i)] = '\0';
+
+        if (i == 0)
+                return null_optional();
+        else if (i > 10)
+                return make_optional(int_lit, 99, 3, forward);
+        else
+                return make_optional(int_lit, 90, 1, forward);
 }
 
 union Optional_Token id_res_machine(char *forward)
