@@ -19,7 +19,7 @@ static void create_listing(char src[])
         // first_symbol.ptr = NULL;
         // struct Symbol *global_sym_table = &first_symbol;
 
-        struct Symbol *global_sym_table = malloc(sizeof(struct Symbol));
+        global_sym_table = malloc(sizeof(struct Symbol));
 
         FILE *sfp;
         FILE *lfp;

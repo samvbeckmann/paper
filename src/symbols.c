@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-// struct Symbol *global_sym_table;
+struct Symbol *global_sym_table;
 
 struct Symbol * add_symbol(char word[], struct Symbol *sym_table)
 {
