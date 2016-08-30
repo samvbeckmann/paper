@@ -1,4 +1,4 @@
-program number_test(input, output);
+program numbertest(input, output);
 var num1, num2: integer;
 
 function fibonacci(first, second, num: integer): integer;
@@ -13,7 +13,7 @@ begin
     else gcd := gcd(second, first mod second)
 end;
 
-function sum_below(first, second, max: integer): integer;
+function sumbelow(first, second, max: integer): integer;
 var temp total: integer;
 begin
     temp := 1;
@@ -24,13 +24,13 @@ begin
                 total := total + temp;
             temp := temp + 1
         end;
-    sum_below := total
+    sumbelow := total
 end;
 
 begin
     read(num1, num2);
     writeln(num1, fibonacci(0, 1, num1 - 1));
     writeln(gcd(num1, num2));
-    write( num1, num2);
-    writeln(sum_below(num1, num2, 300));
+    write(num1, num2);
+    writeln(sumbelow(num1, num2, 300));
 end.
