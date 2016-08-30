@@ -60,4 +60,11 @@
 #define REAL 2
 #define LONG_REAL 3
 
+// Error Codes
+#define UNRECOG_SYM 1
+#define EXTRA_LONG_ID 2
+#define EXTRA_LONG_INT 3
+#define EXTRA_LONG_REAL 4
+#define LEADING_ZEROES 5
+
 #endif

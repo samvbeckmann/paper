@@ -87,12 +87,12 @@ union Optional_Token int_machine(char *forward, char *back)
 
         if (i == 0)
                 return null_optional();
-        else if (int_list[0] == '0' && i != 1)
-                return make_optional(int_lit, 99, 4, forward);
+        else if (int_lit[0] == '0' && i != 1)
+                return make_optional(int_lit, LEXERR, LEADING_ZEROES, forward);
         else if (i > 10)
-                return make_optional(int_lit, 99, 3, forward);
+                return make_optional(int_lit, LEXERR, EXTRA_LONG_INT, forward);
         else
-                return make_optional(int_lit, 90, 1, forward);
+                return make_optional(int_lit, STANDARD_TYPE, INTEGER, forward);
 }
 
 union Optional_Token id_res_machine(char *forward)
@@ -111,7 +111,7 @@ union Optional_Token id_res_machine(char *forward)
         if (i == 0)
                 return null_optional();
         else if (i > 10)
-                return make_optional(word, 99, 2, forward);
+                return make_optional(word, LEXERR, EXTRA_LONG_ID, forward);
 
         union Optional_Token res = check_reserved_words(word);
         if (res.nil != NULL) {
@@ -121,7 +121,7 @@ union Optional_Token id_res_machine(char *forward)
                 struct Symbol *sym_ptr = add_symbol(word);
                 struct Token token;
                 strcpy(token.lexeme, word);
-                token.token_type = 50;
+                token.token_type = ID;
                 token.attribute.ptr = sym_ptr;
                 token.forward = forward;
                 return wrap_token(token);
