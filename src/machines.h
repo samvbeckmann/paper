@@ -3,6 +3,7 @@
 
 struct Token {
         char lexeme[20];
+        int is_id;
         int token_type;
         union Attribute {
                 int attribute;

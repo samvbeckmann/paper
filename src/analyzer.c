@@ -68,11 +68,19 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
                 back = forward;
 
                 struct Token token = match_token(forward, back);
-                fprintf(tfp, "%d,%s,%d,%d\n",
-                                line,
-                                token.lexeme,
-                                token.token_type,
-                                token.attribute.attribute);
+                if (token.is_id) {
+                        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-p\n",
+                                        line,
+                                        token.lexeme,
+                                        token.token_type,
+                                        token.attribute.ptr);
+                } else {
+                        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
+                                        line,
+                                        token.lexeme,
+                                        token.token_type,
+                                        token.attribute.attribute);
+                }
 
                 forward = token.forward;
                 back = forward;

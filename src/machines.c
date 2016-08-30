@@ -16,6 +16,7 @@ union Optional_Token make_optional(
         struct Token token;
         strcpy(token.lexeme, lexeme);
         token.token_type = type;
+        token.is_id = 0;
         token.attribute.attribute = attr;
         token.forward = forward;
         return wrap_token(token);
@@ -125,6 +126,7 @@ union Optional_Token longreal_machine(char *forward, char *back)
 
         char *exponent = read_digits(forward);
         len = strlen(exponent);
+        forward += len;
         strcat(real_lit, exponent);
 
         if (len == 0)
@@ -230,6 +232,7 @@ union Optional_Token id_res_machine(char *forward)
                 struct Token token;
                 strcpy(token.lexeme, word);
                 token.token_type = ID;
+                token.is_id = 1;
                 token.attribute.ptr = sym_ptr;
                 token.forward = forward;
                 return wrap_token(token);
