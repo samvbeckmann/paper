@@ -3,6 +3,8 @@
 #include "symbols.h"
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 extern inline int min(int a, int b);
 
@@ -67,32 +69,69 @@ union Optional_Token longreal_machine(char *forward, char *back)
         return null_optional();
 }
 
+static char * read_digits(char *forward) {
+        char * buff = malloc(30);
+        int i = 0;
+        char value = *forward++;
+        while (isdigit(value)) {
+                buff[i] = value;
+                value = *forward++;
+                i++;
+        }
+        buff[i] = '\0';
+        return buff;
+}
+
 union Optional_Token real_machine(char *forward, char *back)
 {
-        return null_optional();
+        char real_lit[30];
+        bool extra_long = false;
+
+        char * first_part = read_digits(forward);
+        int len = strlen(first_part);
+        forward += len;
+        strcpy(real_lit, first_part);
+
+        if (len == 0)
+                return null_optional();
+        else if (len > 5)
+                extra_long = true;
+
+        char value = *forward++;
+        if (value != '.')
+                return null_optional();
+        strncat(real_lit, &value, 1);
+
+        char *second_part = read_digits(forward);
+        len = strlen(second_part);
+        forward += len;
+        strcat(real_lit, second_part);
+
+        if (len == 0)
+                return null_optional();
+        else if (len > 5)
+                extra_long = true;
+
+        if (extra_long)
+                return make_optional(real_lit, LEXERR, EXTRA_LONG_REAL, forward);
+        else
+                return make_optional(real_lit, STANDARD_TYPE, REAL, forward);
 }
 
 union Optional_Token int_machine(char *forward, char *back)
 {
-        char int_lit[30];
-        int i = 0;
-        char value = *forward++;
-        while (isdigit(value)) {
-                int_lit[i] = value;
-                value = *forward++;
-                i++;
-        }
-        forward--;
-        int_lit[i] = '\0';
+        char *digits = read_digits(forward);
+        int len = strlen(digits);
+        forward += len;
 
-        if (i == 0)
+        if (len == 0)
                 return null_optional();
-        else if (int_lit[0] == '0' && i != 1)
-                return make_optional(int_lit, LEXERR, LEADING_ZEROES, forward);
-        else if (i > 10)
-                return make_optional(int_lit, LEXERR, EXTRA_LONG_INT, forward);
+        else if (digits[0] == '0' && len != 1)
+                return make_optional(digits, LEXERR, LEADING_ZEROES, forward);
+        else if (len > 10)
+                return make_optional(digits, LEXERR, EXTRA_LONG_INT, forward);
         else
-                return make_optional(int_lit, STANDARD_TYPE, INTEGER, forward);
+                return make_optional(digits, STANDARD_TYPE, INTEGER, forward);
 }
 
 union Optional_Token id_res_machine(char *forward)
