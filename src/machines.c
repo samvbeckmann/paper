@@ -13,13 +13,17 @@ union Optional_Token make_optional(
                         int type,
                         int attr,
                         char *forward) {
+        return wrap_token(make_token(lexeme, type, attr, forward));
+}
+
+struct Token make_token(char lexeme[], int type, int attr, char *forward) {
         struct Token token;
         strcpy(token.lexeme, lexeme);
         token.token_type = type;
         token.is_id = 0;
         token.attribute.attribute = attr;
         token.forward = forward;
-        return wrap_token(token);
+        return token;
 }
 
 union Optional_Token null_optional() {
@@ -252,6 +256,38 @@ char * ws_machine(char *forward, char *back)
 
 struct Token catchall_machine(char *forward, char *back)
 {
-        struct Token token;
-        return token;
+        char value = *forward++;
+
+        switch (value) {
+        case ';':
+                return make_token(";", SEMI, 0, forward);
+        case ',':
+                return make_token(",", COMMA, 0, forward);
+        case '(':
+                return make_token("(", PAREN_OPEN, 0, forward);
+        case ')':
+                return make_token(")", PAREN_CLOSE, 0, forward);
+        case '[':
+                return make_token("[", BR_OPEN, 0, forward);
+        case ']':
+                return make_token("]", BR_CLOSE, 0, forward);
+        case ':':
+                value = *forward++;
+                if (value == '=') {
+                        return make_token(":=", ASSIGN, 0, forward);
+                } else {
+                        forward--;
+                        return make_token(":", COLON, 0, forward);
+                }
+        case '.':
+                value = *forward++;
+                if (value == '.') {
+                        return make_token("..", TWO_DOT, 0, forward);
+                } else {
+                        forward--;
+                        return make_token(".", DOT, 0, forward);
+                }
+        default:
+                return make_token(&value, LEXERR, UNRECOG_SYM, forward);
+        }
 }

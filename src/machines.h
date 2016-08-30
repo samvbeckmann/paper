@@ -24,6 +24,7 @@ inline int min(int a, int b) {
 }
 
 union Optional_Token make_optional(char lexeme[], int type, int attr, char *forward);
+struct Token make_token(char lexeme[], int type, int attr, char *forward);
 union Optional_Token null_optional();
 union Optional_Token wrap_token(struct Token token);
 
