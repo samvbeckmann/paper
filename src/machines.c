@@ -86,6 +86,7 @@ union Optional_Token real_machine(char *forward, char *back)
 {
         char real_lit[30];
         bool extra_long = false;
+        bool lead_zeros = false;
 
         char * first_part = read_digits(forward);
         int len = strlen(first_part);
@@ -96,6 +97,8 @@ union Optional_Token real_machine(char *forward, char *back)
                 return null_optional();
         else if (len > 5)
                 extra_long = true;
+        else if (first_part[0] == '0' && len != 1)
+                lead_zeros = true;
 
         char value = *forward++;
         if (value != '.')
@@ -111,9 +114,13 @@ union Optional_Token real_machine(char *forward, char *back)
                 return null_optional();
         else if (len > 5)
                 extra_long = true;
+        else if (second_part[0] == '0' && len != 1)
+                lead_zeros = true;
 
         if (extra_long)
                 return make_optional(real_lit, LEXERR, EXTRA_LONG_REAL, forward);
+        else if (lead_zeros)
+                return make_optional(real_lit, LEXERR, LEADING_ZEROES, forward);
         else
                 return make_optional(real_lit, STANDARD_TYPE, REAL, forward);
 }
