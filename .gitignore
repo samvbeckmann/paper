@@ -37,4 +37,7 @@
 
 # Project Files
 *.listing
+*.tokens
 /test
+CMakeLists.txt
+.idea
