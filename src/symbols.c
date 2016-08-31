@@ -74,8 +74,6 @@ struct Reserved_Word * initialize_reserved_words(FILE *rfp)
                         add_reserved_word(word, type, attr);
                 }
                 fgets(buff, 80, rfp);
-
         }
-
         return reserved_word_table;
 }

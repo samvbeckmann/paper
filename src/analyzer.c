@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
 {
         for(int i = 1; i < argc; i++) {
                 create_listing(argv[i]);
-                // TODO: Check if file exists.
         }
 }
 
@@ -25,9 +24,7 @@ static void create_listing(char src[])
 
         char noext[40];
         strcpy(noext, src);
-        strcpy(noext, src);
-        noext[strlen(noext) - 3] = '\0';
-        // TODO: More elegantly remove exensions
+        *(strrchr(noext, '.') + 1) = '\0';
 
         char lfname[50];
         strcpy(lfname, noext);
@@ -41,6 +38,14 @@ static void create_listing(char src[])
         lfp = fopen(lfname, "w");
         tfp = fopen(tkname, "w");
         rfp = fopen("RESERVED_WORDS", "r");
+
+        if (sfp == NULL) {
+                fprintf(stderr, "Source file \"%s\" does not exist.\n", src);
+                return;
+        } else if (rfp == NULL) {
+                fprintf(stderr, "RESERVED_WORDS file not found.\n");
+                return;
+        }
 
         initialize_reserved_words(rfp);
 
@@ -57,6 +62,7 @@ static void create_listing(char src[])
         fclose(sfp);
         fclose(lfp);
         fclose(tfp);
+        fclose(rfp);
 }
 
 /*
@@ -97,29 +103,24 @@ static struct Token match_token(char *forward, char *back)
         union Optional_Token result;
 
         result = longreal_machine(forward, back);
-        if (result.nil != NULL) {
+        if (result.nil != NULL)
                 return result.token;
-        }
 
         result = real_machine(forward, back);
-        if (result.nil != NULL) {
+        if (result.nil != NULL)
                 return result.token;
-        }
 
         result = int_machine(forward, back);
-        if (result.nil != NULL) {
+        if (result.nil != NULL)
                 return result.token;
-        }
 
         result = id_res_machine(forward);
-        if (result.nil != NULL) {
+        if (result.nil != NULL)
                 return result.token;
-        }
 
         result = relop_machine(forward, back);
-        if (result.nil != NULL) {
+        if (result.nil != NULL)
                 return result.token;
-        }
 
         return catchall_machine(forward, back);
 }
