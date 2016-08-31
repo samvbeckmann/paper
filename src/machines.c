@@ -259,6 +259,14 @@ struct Token catchall_machine(char *forward, char *back)
         char value = *forward++;
 
         switch (value) {
+        case '+':
+                return make_token("+", ADDOP, ADD, forward);
+        case '-':
+                return make_token("-", ADDOP, SUB, forward);
+        case '*':
+                return make_token("*", MULOP, MULT, forward);
+        case '/':
+                return make_token("/", MULOP, DIVIDE, forward);
         case ';':
                 return make_token(";", SEMI, 0, forward);
         case ',':
