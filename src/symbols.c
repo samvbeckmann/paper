@@ -17,10 +17,10 @@ struct Symbol * add_symbol(char word[])
         }
 
         current -> ptr = malloc(sizeof(struct Symbol));
-        strcpy(current -> ptr -> word, word);
+        strcpy(current -> word, word);
         current -> ptr -> ptr = NULL;
 
-        return current -> ptr;
+        return current;
 }
 
 struct Reserved_Word * add_reserved_word(char word[], int type, int attr)
@@ -59,8 +59,6 @@ union Optional_Token check_reserved_words(char word[])
 
 struct Reserved_Word * initialize_reserved_words(FILE *rfp)
 {
-        printf("INITIALIZING!\n");
-
         reserved_word_table = malloc(sizeof(struct Reserved_Word));
         reserved_word_table -> next = NULL;
         char buff[80];
@@ -73,7 +71,6 @@ struct Reserved_Word * initialize_reserved_words(FILE *rfp)
                         int attr;
 
                         sscanf(buff, "%s %d %d", word, &type, &attr);
-                        printf("Read Reserved Word: %s %d %d\n", word, type, attr);
                         add_reserved_word(word, type, attr);
                 }
                 fgets(buff, 80, rfp);

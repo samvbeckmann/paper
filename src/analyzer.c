@@ -7,8 +7,6 @@
 
 int main(int argc, char *argv[])
 {
-        printf("here?\n");
-
         for(int i = 1; i < argc; i++) {
                 create_listing(argv[i]);
                 // TODO: Check if file exists.
@@ -17,8 +15,8 @@ int main(int argc, char *argv[])
 
 static void create_listing(char src[])
 {
-
         global_sym_table = malloc(sizeof(struct Symbol));
+        global_sym_table -> ptr = NULL;
 
         FILE *sfp;
         FILE *lfp;
@@ -38,8 +36,6 @@ static void create_listing(char src[])
         char tkname[50];
         strcpy(tkname, noext);
         strcat(tkname, "tokens");
-
-
 
         sfp = fopen(src, "r");
         lfp = fopen(lfname, "w");
