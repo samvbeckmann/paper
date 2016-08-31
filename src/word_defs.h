@@ -28,6 +28,7 @@
 #define DOT 38
 #define TWO_DOT 39
 
+#define NUM 40
 #define ID 50
 #define MULOP 60
 #define ADDOP 70

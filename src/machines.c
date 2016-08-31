@@ -145,7 +145,7 @@ union Optional_Token longreal_machine(char *forward, char *back)
         else if (lead_zeros)
                 return make_optional(real_lit, LEXERR, LEADING_ZEROES, forward);
         else
-                return make_optional(real_lit, STANDARD_TYPE, LONG_REAL, forward);
+                return make_optional(real_lit, NUM, LONG_REAL, forward);
 
         return null_optional();
 }
@@ -190,7 +190,7 @@ union Optional_Token real_machine(char *forward, char *back)
         else if (lead_zeros)
                 return make_optional(real_lit, LEXERR, LEADING_ZEROES, forward);
         else
-                return make_optional(real_lit, STANDARD_TYPE, REAL, forward);
+                return make_optional(real_lit, NUM, REAL, forward);
 }
 
 union Optional_Token int_machine(char *forward, char *back)
@@ -206,7 +206,7 @@ union Optional_Token int_machine(char *forward, char *back)
         else if (len > 10)
                 return make_optional(digits, LEXERR, EXTRA_LONG_INT, forward);
         else
-                return make_optional(digits, STANDARD_TYPE, INTEGER, forward);
+                return make_optional(digits, NUM, INTEGER, forward);
 }
 
 union Optional_Token id_res_machine(char *forward)

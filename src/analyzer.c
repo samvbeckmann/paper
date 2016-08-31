@@ -7,9 +7,11 @@
 
 int main(int argc, char *argv[])
 {
+        printf("here?\n");
+
         for(int i = 1; i < argc; i++) {
                 create_listing(argv[i]);
-                // TODO Check if file exists.
+                // TODO: Check if file exists.
         }
 }
 
@@ -21,11 +23,13 @@ static void create_listing(char src[])
         FILE *sfp;
         FILE *lfp;
         FILE *tfp;
+        FILE *rfp;
 
         char noext[40];
         strcpy(noext, src);
         strcpy(noext, src);
         noext[strlen(noext) - 3] = '\0';
+        // TODO: More elegantly remove exensions
 
         char lfname[50];
         strcpy(lfname, noext);
@@ -35,9 +39,14 @@ static void create_listing(char src[])
         strcpy(tkname, noext);
         strcat(tkname, "tokens");
 
+
+
         sfp = fopen(src, "r");
         lfp = fopen(lfname, "w");
         tfp = fopen(tkname, "w");
+        rfp = fopen("RESERVED_WORDS", "r");
+
+        initialize_reserved_words(rfp);
 
         char buff[72];
         int line = 0;
