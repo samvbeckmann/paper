@@ -93,6 +93,12 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
                                         token.attribute.attribute);
                 }
 
+                if (token.token_type == 99) {
+                        fprintf(lfp, "LEXERR:   %-20s%s\n",
+                                error_codes[token.attribute.attribute- 1],
+                                token.lexeme);
+                }
+
                 forward = token.forward;
                 back = forward;
         }
