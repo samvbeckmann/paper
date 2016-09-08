@@ -12,6 +12,13 @@ extern inline int min(int a, int b);
  * Factory for Optional_Tokens.
  * Takes in needed parameters for a token, and makes an Optional_Token with
  * those parameters. Abstracts the creation of Optional_Token structs.
+ *
+ * Arguments: lexeme -> Literal of matched lexeme.
+ *            type -> Integer representation of token's type.
+ *            attr -> Integer representation of token's attribute.
+ *            forward -> Pointer to the char after this lexeme ended in buffer.
+ *
+ * Returns: An Optional_Token with the given parameters. Not a null optional.
  */
 union Optional_Token make_optional(
                         char lexeme[],
@@ -25,6 +32,13 @@ union Optional_Token make_optional(
  * Factory for Tokens.
  * Takes in needed parameters for a token, and makes an Optional_Token with
  * those paratmers. Abstracts the creation of Token structs.
+ *
+ * Arguments: lexeme -> Literal of matched lexeme.
+ *            type -> Integer representation of token's type.
+ *            attr -> Integer representation of token's attribute.
+ *            forward -> Pointer to the char after this lexeme ended in buffer.
+ *
+ * Returns: A Token with the given parameters. This does not create an id token.
  */
 struct Token make_token(char lexeme[], int type, int attr, char *forward) {
         struct Token token;
@@ -39,6 +53,8 @@ struct Token make_token(char lexeme[], int type, int attr, char *forward) {
 /*
  * Creates an Optional_Token which is nil.
  * Used as standard factory of nil Optional_Token structs.
+ *
+ * Returns: Optional_Token with "nil" as the token.
  */
 union Optional_Token null_optional() {
         union Optional_Token op_token;
@@ -48,6 +64,10 @@ union Optional_Token null_optional() {
 
 /*
  * Wraps a token as an Optional_Token, so that it can be returned as such.
+ *
+ * Arguments: token -> Token that is to be wrapped.
+ *
+ * Returns: Optional_Token that contains the paramter "token"
  */
 union Optional_Token wrap_token(struct Token token)
 {
@@ -61,10 +81,12 @@ union Optional_Token wrap_token(struct Token token)
  *
  * Valid relops: '<', '>', '==', '<=', '>=', '<>'.
  *
- * Returns an Optional_Token representing the matched relop, or a nil
- * Optional_Token if no relop is matched.
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: An Optional_Token representing the matched relop, or a nil
+ *          Optional_Token if no relop is matched.
  */
-union Optional_Token relop_machine(char *forward, char *back)
+union Optional_Token relop_machine(char *forward, char *back) // TODO: Remove back
 {
         char value = *forward++;
         switch (value) {
@@ -94,7 +116,14 @@ union Optional_Token relop_machine(char *forward, char *back)
         }
 }
 
-// TODO document
+/*
+ * Reads a series of digits until a non-digit character is read, returning a
+ * buffer of read digits.
+ *
+ * Arguments: forward -> Pointer to where begin reading.
+ *
+ * Returns: char pointer to buffer or read digits.
+ */
 static char * read_digits(char *forward) {
         char * buff = malloc(30);
         int i = 0;
@@ -114,10 +143,12 @@ static char * read_digits(char *forward) {
  * A long real consists of 1-5 digits, a decimal point, 1-5 digits, "E",
  * an optional sign (+|-), and 1-2 digits.
  *
- * Returns an Optional_Token representing the matched long real, or a nil
- * Optional_Token if no long real is matched.
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: an Optional_Token representing the matched long real, or a nil
+ *          Optional_Token if no long real is matched.
  */
-union Optional_Token longreal_machine(char *forward, char *back)
+union Optional_Token longreal_machine(char *forward, char *back) // TODO: Remove back
 {
         char real_lit[30];
         bool extra_long = false;
@@ -190,10 +221,12 @@ union Optional_Token longreal_machine(char *forward, char *back)
  *
  * A real number consists of 1-5 digits, a decimal point, and 1-5 digits.
  *
- * Returns an Optional_Token representing the matched real, or a nil
- * Optional_Token if no real number is matched.
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: An Optional_Token representing the matched real, or a nil
+ *          Optional_Token if no real number is matched.
  */
-union Optional_Token real_machine(char *forward, char *back)
+union Optional_Token real_machine(char *forward, char *back) // TODO: Remove back
 {
         char real_lit[30];
         bool extra_long = false;
@@ -241,10 +274,12 @@ union Optional_Token real_machine(char *forward, char *back)
  *
  * An integer consists of 1-10 digits with no leading zeroes.
  *
- * Returns an Optional_Token representing the matched integer, or a nil
- * Optional_Token if no integer is matched.
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: An Optional_Token representing the matched integer, or a nil
+ *          Optional_Token if no integer is matched.
  */
-union Optional_Token int_machine(char *forward, char *back)
+union Optional_Token int_machine(char *forward, char *back) // TODO: Remove back
 {
         char *digits = read_digits(forward);
         int len = strlen(digits);
@@ -270,8 +305,10 @@ union Optional_Token int_machine(char *forward, char *back)
  * and returns an Optional_Token containg the matched ID and a reference
  * to it in the symbol table.
  *
- * Returns a LEXERR Optional_Token if an error is encountered, or a a nil
- * Optional_Token if no id or reserved word is matched.
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: A LEXERR Optional_Token if an error is encountered, or a a nil
+ *          Optional_Token if no id or reserved word is matched.
  */
 union Optional_Token id_res_machine(char *forward)
 {
