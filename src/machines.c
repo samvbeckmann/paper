@@ -8,6 +8,11 @@
 
 extern inline int min(int a, int b);
 
+/*
+ * Factory for Optional_Tokens.
+ * Takes in needed parameters for a token, and makes an Optional_Token with
+ * those parameters. Abstracts the creation of Optional_Token structs.
+ */
 union Optional_Token make_optional(
                         char lexeme[],
                         int type,
@@ -16,6 +21,11 @@ union Optional_Token make_optional(
         return wrap_token(make_token(lexeme, type, attr, forward));
 }
 
+/*
+ * Factory for Tokens.
+ * Takes in needed parameters for a token, and makes an Optional_Token with
+ * those paratmers. Abstracts the creation of Token structs.
+ */
 struct Token make_token(char lexeme[], int type, int attr, char *forward) {
         struct Token token;
         strcpy(token.lexeme, lexeme);
@@ -26,12 +36,19 @@ struct Token make_token(char lexeme[], int type, int attr, char *forward) {
         return token;
 }
 
+/*
+ * Creates an Optional_Token which is nil.
+ * Used as standard factory of nil Optional_Token structs.
+ */
 union Optional_Token null_optional() {
         union Optional_Token op_token;
         op_token.nil = NULL;
         return op_token;
 }
 
+/*
+ * Wraps a token as an Optional_Token, so that it can be returned as such.
+ */
 union Optional_Token wrap_token(struct Token token)
 {
         union Optional_Token op_token;
@@ -39,6 +56,14 @@ union Optional_Token wrap_token(struct Token token)
         return op_token;
 }
 
+/*
+ * Machine that matches relational operators, or "Relops".
+ *
+ * Valid relops: '<', '>', '==', '<=', '>=', '<>'.
+ *
+ * Returns an Optional_Token representing the matched relop, or a nil
+ * Optional_Token if no relop is matched.
+ */
 union Optional_Token relop_machine(char *forward, char *back)
 {
         char value = *forward++;
@@ -69,6 +94,7 @@ union Optional_Token relop_machine(char *forward, char *back)
         }
 }
 
+// TODO document
 static char * read_digits(char *forward) {
         char * buff = malloc(30);
         int i = 0;
@@ -82,6 +108,15 @@ static char * read_digits(char *forward) {
         return buff;
 }
 
+/*
+ * Machine that reads real numbers containing an exponent, or "Long Reals".
+ *
+ * A long real consists of 1-5 digits, a decimal point, 1-5 digits, "E",
+ * an optional sign (+|-), and 1-2 digits.
+ *
+ * Returns an Optional_Token representing the matched long real, or a nil
+ * Optional_Token if no long real is matched.
+ */
 union Optional_Token longreal_machine(char *forward, char *back)
 {
         char real_lit[30];
@@ -150,6 +185,14 @@ union Optional_Token longreal_machine(char *forward, char *back)
         return null_optional();
 }
 
+/*
+ * Machine that reads real numbers.
+ *
+ * A real number consists of 1-5 digits, a decimal point, and 1-5 digits.
+ *
+ * Returns an Optional_Token representing the matched real, or a nil
+ * Optional_Token if no real number is matched.
+ */
 union Optional_Token real_machine(char *forward, char *back)
 {
         char real_lit[30];
@@ -193,6 +236,14 @@ union Optional_Token real_machine(char *forward, char *back)
                 return make_optional(real_lit, NUM, REAL, forward);
 }
 
+/*
+ * Machine that reads integers.
+ *
+ * An integer consists of 1-10 digits with no leading zeroes.
+ *
+ * Returns an Optional_Token representing the matched integer, or a nil
+ * Optional_Token if no integer is matched.
+ */
 union Optional_Token int_machine(char *forward, char *back)
 {
         char *digits = read_digits(forward);
@@ -209,6 +260,19 @@ union Optional_Token int_machine(char *forward, char *back)
                 return make_optional(digits, NUM, INTEGER, forward);
 }
 
+/*
+ * Machine that matches ids and reserved words.
+ *
+ * An ID consists of a letter, followed by 0-9 digits or letters.
+ * If the matched string is equivalent to a reserved word, returns the token
+ * that represents the reserved word.
+ * Otherwise, adds the ID to the symbol table if it is not already there,
+ * and returns an Optional_Token containg the matched ID and a reference
+ * to it in the symbol table.
+ *
+ * Returns a LEXERR Optional_Token if an error is encountered, or a a nil
+ * Optional_Token if no id or reserved word is matched.
+ */
 union Optional_Token id_res_machine(char *forward)
 {
         char word[30];
@@ -243,7 +307,14 @@ union Optional_Token id_res_machine(char *forward)
         }
 }
 
-char * ws_machine(char *forward, char *back)
+/*
+ * Machine that matches whitespace.
+ *
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+
+ * Returns: Pointer to first non-whitespace character matched.
+ */
+char * ws_machine(char *forward, char *back) // TODO remove back pointer
 {
         char value;
         do {
@@ -254,7 +325,18 @@ char * ws_machine(char *forward, char *back)
         return forward;
 }
 
-struct Token catchall_machine(char *forward, char *back)
+/*
+ * Machine that caches all other tokens not matched by a previous machine.
+ *
+ * If no valid token is matched by this machine, it returns a LEXERR for an
+ * unrecognized symbol. This garuntees this machine will always return a token.
+ *
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: Token either containing a valid token, attribute pair, or a LEXERR
+ *          token if no valid token is matched.
+ */
+struct Token catchall_machine(char *forward, char *back) // TODO: remove back
 {
         char value = *forward++;
 
