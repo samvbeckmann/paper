@@ -6,8 +6,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-extern inline int min(int a, int b);
-
 /*
  * Factory for Optional_Tokens.
  * Takes in needed parameters for a token, and makes an Optional_Token with

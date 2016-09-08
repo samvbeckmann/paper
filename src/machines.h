@@ -17,12 +17,6 @@ union Optional_Token {
         struct Token token;
 };
 
-inline int min(int a, int b) {
-    if (a > b)
-        return b;
-    return a;
-}
-
 union Optional_Token make_optional(char lexeme[], int type, int attr, char *forward);
 struct Token make_token(char lexeme[], int type, int attr, char *forward);
 union Optional_Token null_optional();
