@@ -114,46 +114,6 @@ char * ws_machine(char *forward, char *back) // TODO remove back pointer
 }
 
 /*
- * Machine that matches relational operators, or "Relops".
- *
- * Valid relops: '<', '>', '==', '<=', '>=', '<>'.
- *
- * Arguments: forward -> Pointer to memory location to begin reading from.
- *
- * Returns: An Optional_Token representing the matched relop, or a nil
- *          Optional_Token if no relop is matched.
- */
-union Optional_Token relop_machine(char *forward, char *back) // TODO: Remove back
-{
-        char value = *forward++;
-        switch (value) {
-        case '<':
-                value = *forward++;
-                switch (value) {
-                case '>':
-                        return make_optional("<>", RELOP, NEQ, forward);
-                case '=':
-                        return make_optional("<=", RELOP, LT_EQ, forward);
-                default:
-                        forward--;
-                        return make_optional("<", RELOP, LT, forward);
-                }
-        case '>':
-                value = *forward++;
-                if (value == '=') {
-                        return make_optional(">=", RELOP, GT_EQ, forward);
-                } else {
-                        forward--;
-                        return make_optional(">", RELOP, GT, forward);
-                }
-        case '=':
-                return make_optional("=", RELOP, EQ, forward);
-        default:
-                return null_optional();
-        }
-}
-
-/*
  * Machine that reads real numbers containing an exponent, or "Long Reals".
  *
  * A long real consists of 1-5 digits, a decimal point, 1-5 digits, "E",
@@ -357,6 +317,46 @@ union Optional_Token id_res_machine(char *forward)
                 token.attribute.ptr = sym_ptr;
                 token.forward = forward;
                 return wrap_token(token);
+        }
+}
+
+/*
+ * Machine that matches relational operators, or "Relops".
+ *
+ * Valid relops: '<', '>', '==', '<=', '>=', '<>'.
+ *
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+ *
+ * Returns: An Optional_Token representing the matched relop, or a nil
+ *          Optional_Token if no relop is matched.
+ */
+union Optional_Token relop_machine(char *forward, char *back) // TODO: Remove back
+{
+        char value = *forward++;
+        switch (value) {
+        case '<':
+                value = *forward++;
+                switch (value) {
+                case '>':
+                        return make_optional("<>", RELOP, NEQ, forward);
+                case '=':
+                        return make_optional("<=", RELOP, LT_EQ, forward);
+                default:
+                        forward--;
+                        return make_optional("<", RELOP, LT, forward);
+                }
+        case '>':
+                value = *forward++;
+                if (value == '=') {
+                        return make_optional(">=", RELOP, GT_EQ, forward);
+                } else {
+                        forward--;
+                        return make_optional(">", RELOP, GT, forward);
+                }
+        case '=':
+                return make_optional("=", RELOP, EQ, forward);
+        default:
+                return null_optional();
         }
 }
 
