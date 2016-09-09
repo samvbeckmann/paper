@@ -75,6 +75,45 @@ union Optional_Token wrap_token(struct Token token)
 }
 
 /*
+ * Reads a series of digits until a non-digit character is read, returning a
+ * buffer of read digits.
+ *
+ * Arguments: forward -> Pointer to where begin reading.
+ *
+ * Returns: char pointer to buffer or read digits.
+ */
+static char * read_digits(char *forward) {
+        char * buff = malloc(30);
+        int i = 0;
+        char value = *forward++;
+        while (isdigit(value)) {
+                buff[i] = value;
+                value = *forward++;
+                i++;
+        }
+        buff[i] = '\0';
+        return buff;
+}
+
+/*
+ * Machine that matches whitespace.
+ *
+ * Arguments: forward -> Pointer to memory location to begin reading from.
+
+ * Returns: Pointer to first non-whitespace character matched.
+ */
+char * ws_machine(char *forward, char *back) // TODO remove back pointer
+{
+        char value;
+        do {
+                value = *forward++;
+        } while (value == ' ' || value == '\t');
+        forward--;
+
+        return forward;
+}
+
+/*
  * Machine that matches relational operators, or "Relops".
  *
  * Valid relops: '<', '>', '==', '<=', '>=', '<>'.
@@ -112,27 +151,6 @@ union Optional_Token relop_machine(char *forward, char *back) // TODO: Remove ba
         default:
                 return null_optional();
         }
-}
-
-/*
- * Reads a series of digits until a non-digit character is read, returning a
- * buffer of read digits.
- *
- * Arguments: forward -> Pointer to where begin reading.
- *
- * Returns: char pointer to buffer or read digits.
- */
-static char * read_digits(char *forward) {
-        char * buff = malloc(30);
-        int i = 0;
-        char value = *forward++;
-        while (isdigit(value)) {
-                buff[i] = value;
-                value = *forward++;
-                i++;
-        }
-        buff[i] = '\0';
-        return buff;
 }
 
 /*
@@ -340,24 +358,6 @@ union Optional_Token id_res_machine(char *forward)
                 token.forward = forward;
                 return wrap_token(token);
         }
-}
-
-/*
- * Machine that matches whitespace.
- *
- * Arguments: forward -> Pointer to memory location to begin reading from.
-
- * Returns: Pointer to first non-whitespace character matched.
- */
-char * ws_machine(char *forward, char *back) // TODO remove back pointer
-{
-        char value;
-        do {
-                value = *forward++;
-        } while (value == ' ' || value == '\t');
-        forward--;
-
-        return forward;
 }
 
 /*
