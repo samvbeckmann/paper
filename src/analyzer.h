@@ -8,7 +8,7 @@
  * readable format in the listing file.
  */
 const char * const error_codes[] = {
-                "Unrecognized Symbol:",
+                "Unrecognized Sym:",
                 "Extra Long ID:",
                 "Extra Long Integer:",
                 "Extra Long Real:",

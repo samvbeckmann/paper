@@ -374,6 +374,7 @@ union Optional_Token relop_machine(char *forward)
 struct Token catchall_machine(char *forward)
 {
         char value = *forward++;
+        char lexeme[2];
 
         switch (value) {
         case '+':
@@ -413,6 +414,8 @@ struct Token catchall_machine(char *forward)
                         return make_token(".", DOT, 0, forward);
                 }
         default:
-                return make_token(&value, LEXERR, UNRECOG_SYM, forward);
+                lexeme[0] = value;
+                lexeme[1] = '\0';
+                return make_token(lexeme, LEXERR, UNRECOG_SYM, forward);
         }
 }
