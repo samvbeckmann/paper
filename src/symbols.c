@@ -6,6 +6,14 @@
 struct Symbol *global_sym_table;
 struct Reserved_Word *reserved_word_table;
 
+/*
+ * Adds a symbol to the symbol table if it is not already present. If the symbol
+ * is already present, returns a pointer to that Symbol.
+ *
+ * Arguments: word -> literal symbol to be added to the table.
+ *
+ * Returns: A pointer to the symbol in the table.
+ */
 struct Symbol * add_symbol(char word[])
 {
         struct Symbol *current = global_sym_table;
@@ -23,6 +31,15 @@ struct Symbol * add_symbol(char word[])
         return current;
 }
 
+/*
+ * Adds a reserved word to the reserved word table.
+ *
+ * Arguments: word -> Literal of the word to be added.
+ *            type -> Token type associated with the reserved word.
+ *            attr -> Token attribute associated with the reserved word.
+ *
+ * Returns: A pointer to the reserved word added to the table.
+ */
 struct Reserved_Word * add_reserved_word(char word[], int type, int attr)
 {
         struct Reserved_Word *current = reserved_word_table;
@@ -40,6 +57,14 @@ struct Reserved_Word * add_reserved_word(char word[], int type, int attr)
         return current -> next;
 }
 
+/*
+ * Checks if a given word is in the reserved word table.
+ *
+ * Arguments: word -> Literal of the word to be checked.
+ *
+ * Returns: The token associated with the reserved word. If no reserved word is
+ *          found, returns a null Optional_Token.
+ */
 union Optional_Token check_reserved_words(char word[])
 {
         struct Reserved_Word *current = reserved_word_table;
@@ -57,6 +82,13 @@ union Optional_Token check_reserved_words(char word[])
         return null_optional();
 }
 
+/*
+ * Initializes the reserved word table from the RESERVED_WORDS file.
+ *
+ * Arguments: rfp -> Pointer to the reserved word file.
+ *
+ * Returns: A pointer to the reserved word table.
+ */
 struct Reserved_Word * initialize_reserved_words(FILE *rfp)
 {
         reserved_word_table = malloc(sizeof(struct Reserved_Word));
