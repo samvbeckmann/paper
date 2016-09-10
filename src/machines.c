@@ -102,7 +102,7 @@ static char * read_digits(char *forward) {
 
  * Returns: Pointer to first non-whitespace character matched.
  */
-char * ws_machine(char *forward, char *back) // TODO remove back pointer
+char * ws_machine(char *forward)
 {
         char value;
         do {
@@ -124,7 +124,7 @@ char * ws_machine(char *forward, char *back) // TODO remove back pointer
  * Returns: an Optional_Token representing the matched long real, or a nil
  *          Optional_Token if no long real is matched.
  */
-union Optional_Token longreal_machine(char *forward, char *back) // TODO: Remove back
+union Optional_Token longreal_machine(char *forward)
 {
         char real_lit[30];
         bool extra_long = false;
@@ -202,7 +202,7 @@ union Optional_Token longreal_machine(char *forward, char *back) // TODO: Remove
  * Returns: An Optional_Token representing the matched real, or a nil
  *          Optional_Token if no real number is matched.
  */
-union Optional_Token real_machine(char *forward, char *back) // TODO: Remove back
+union Optional_Token real_machine(char *forward)
 {
         char real_lit[30];
         bool extra_long = false;
@@ -255,7 +255,7 @@ union Optional_Token real_machine(char *forward, char *back) // TODO: Remove bac
  * Returns: An Optional_Token representing the matched integer, or a nil
  *          Optional_Token if no integer is matched.
  */
-union Optional_Token int_machine(char *forward, char *back) // TODO: Remove back
+union Optional_Token int_machine(char *forward)
 {
         char *digits = read_digits(forward);
         int len = strlen(digits);
@@ -330,7 +330,7 @@ union Optional_Token id_res_machine(char *forward)
  * Returns: An Optional_Token representing the matched relop, or a nil
  *          Optional_Token if no relop is matched.
  */
-union Optional_Token relop_machine(char *forward, char *back) // TODO: Remove back
+union Optional_Token relop_machine(char *forward)
 {
         char value = *forward++;
         switch (value) {
@@ -371,7 +371,7 @@ union Optional_Token relop_machine(char *forward, char *back) // TODO: Remove ba
  * Returns: Token either containing a valid token, attribute pair, or a LEXERR
  *          token if no valid token is matched.
  */
-struct Token catchall_machine(char *forward, char *back) // TODO: remove back
+struct Token catchall_machine(char *forward)
 {
         char value = *forward++;
 

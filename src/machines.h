@@ -88,7 +88,7 @@ union Optional_Token wrap_token(struct Token token);
 
  * Returns: Pointer to first non-whitespace character matched.
  */
-char * ws_machine(char *forward, char *back);
+char * ws_machine(char *forward);
 
 /*
  * Machine that reads real numbers containing an exponent, or "Long Reals".
@@ -101,7 +101,7 @@ char * ws_machine(char *forward, char *back);
  * Returns: an Optional_Token representing the matched long real, or a nil
  *          Optional_Token if no long real is matched.
  */
-union Optional_Token longreal_machine(char *forward, char *back);
+union Optional_Token longreal_machine(char *forward);
 
 /*
  * Machine that reads real numbers.
@@ -113,7 +113,7 @@ union Optional_Token longreal_machine(char *forward, char *back);
  * Returns: An Optional_Token representing the matched real, or a nil
  *          Optional_Token if no real number is matched.
  */
-union Optional_Token real_machine(char *forward, char *back);
+union Optional_Token real_machine(char *forward);
 
 /*
  * Machine that reads integers.
@@ -125,7 +125,7 @@ union Optional_Token real_machine(char *forward, char *back);
  * Returns: An Optional_Token representing the matched integer, or a nil
  *          Optional_Token if no integer is matched.
  */
-union Optional_Token int_machine(char *forward, char *back);
+union Optional_Token int_machine(char *forward);
 
 /*
  * Machine that matches ids and reserved words.
@@ -154,7 +154,7 @@ union Optional_Token id_res_machine(char *forward);
  * Returns: An Optional_Token representing the matched relop, or a nil
  *          Optional_Token if no relop is matched.
  */
-union Optional_Token relop_machine(char *forward, char *back);
+union Optional_Token relop_machine(char *forward);
 
 /*
  * Machine that caches all other tokens not matched by a previous machine.
@@ -167,6 +167,6 @@ union Optional_Token relop_machine(char *forward, char *back);
  * Returns: Token either containing a valid token, attribute pair, or a LEXERR
  *          token if no valid token is matched.
  */
-struct Token catchall_machine(char *forward, char *back);
+struct Token catchall_machine(char *forward);
 
 #endif

@@ -88,10 +88,10 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
         char *back = buff;
 
         while (*forward != '\n') {
-                forward = ws_machine(forward, back);
+                forward = ws_machine(forward);
                 back = forward;
 
-                struct Token token = match_token(forward, back);
+                struct Token token = match_token(forward);
                 if (token.is_id) {
                         fprintf(tfp, "%4d\t%-20s\t%-2d\t%-p\n",
                                         line,
@@ -125,19 +125,19 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
  * Returns: Token that was matched from one of the machines. Some token will
  *          always be matched by the catch-all machine, so this is garunteed.
  */
-static struct Token match_token(char *forward, char *back) // TODO: Remove back.
+static struct Token match_token(char *forward)
 {
         union Optional_Token result;
 
-        result = longreal_machine(forward, back);
+        result = longreal_machine(forward);
         if (result.nil != NULL)
                 return result.token;
 
-        result = real_machine(forward, back);
+        result = real_machine(forward);
         if (result.nil != NULL)
                 return result.token;
 
-        result = int_machine(forward, back);
+        result = int_machine(forward);
         if (result.nil != NULL)
                 return result.token;
 
@@ -145,9 +145,9 @@ static struct Token match_token(char *forward, char *back) // TODO: Remove back.
         if (result.nil != NULL)
                 return result.token;
 
-        result = relop_machine(forward, back);
+        result = relop_machine(forward);
         if (result.nil != NULL)
                 return result.token;
 
-        return catchall_machine(forward, back);
+        return catchall_machine(forward);
 }

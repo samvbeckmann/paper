@@ -43,6 +43,6 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp);
  * Returns: Token that was matched from one of the machines. Some token will
  *          always be matched by the catch-all machine, so this is garunteed.
  */
-static struct Token match_token(char *forward, char *back);
+static struct Token match_token(char *forward);
 
 #endif
