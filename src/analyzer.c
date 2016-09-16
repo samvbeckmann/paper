@@ -4,6 +4,7 @@
 #include "machines.h"
 #include "analyzer.h"
 #include "symbols.h"
+#include "word_defs.h"
 
 int main(int argc, char *argv[])
 {
@@ -66,6 +67,12 @@ static void compile_file(char src[])
                 generate_tokens(line, buff, tfp, lfp);
                 fgets(buff, 72, (FILE*) sfp);
         }
+
+        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
+                        ++line,
+                        "EOF",
+                        EOF_TYPE,
+                        0);
 
         fclose(sfp);
         fclose(lfp);

@@ -16,6 +16,7 @@
 #define ARRAY 21
 #define OF 22
 #define VAR 23
+#define EOF_TYPE 34
 
 #define SEMI 30
 #define COMMA 31
