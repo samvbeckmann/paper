@@ -92,11 +92,9 @@ static void compile_file(char src[])
 static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
 {
         char *forward = buff;
-        char *back = buff;
 
         while (*forward != '\n') {
                 forward = ws_machine(forward);
-                back = forward;
 
                 struct Token token = match_token(forward);
                 if (token.is_id) {
@@ -120,7 +118,6 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
                 }
 
                 forward = token.forward;
-                back = forward;
         }
 }
 
