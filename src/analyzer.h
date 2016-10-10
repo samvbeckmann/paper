@@ -24,16 +24,13 @@ const char * const error_codes[] = {
  */
 static void compile_file(char src[]);
 
-/*
- * Adds all tokens for the line into the token file.
- * Reports lexical errors to the listing file.
- *
- * Arguments: line -> line number that is currently being read.
- *            buff -> char array that contins a line of the source file.
- *            tfp -> Pointer to the token file that tokens are written to.
- *            lfp -> Pointer to the listing file, where errors are written.
- */
-static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp);
+static char* get_next_line();
+static void parse();
+void match(int token_type);
+void update_tok(struct Token token);
+static struct Token get_token();
+
+
 
 /*
  * Runs a buffer through all of the machines to match a token.
@@ -43,6 +40,6 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp);
  * Returns: Token that was matched from one of the machines. Some token will
  *          always be matched by the catch-all machine, so this is garunteed.
  */
-static struct Token match_token(char *forward);
+static struct Token match_token();
 
 #endif

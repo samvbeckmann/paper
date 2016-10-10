@@ -6,6 +6,14 @@
 #include "symbols.h"
 #include "word_defs.h"
 
+// Class variables
+int line;
+char *forward;
+FILE *sfp;
+FILE *lfp;
+FILE *tfp;
+struct Token tok;
+
 int main(int argc, char *argv[])
 {
         for(int i = 1; i < argc; i++) {
@@ -26,9 +34,6 @@ static void compile_file(char src[])
         global_sym_table = malloc(sizeof(struct Symbol));
         global_sym_table -> ptr = NULL;
 
-        FILE *sfp;
-        FILE *lfp;
-        FILE *tfp;
         FILE *rfp;
 
         char noext[40];
@@ -58,21 +63,11 @@ static void compile_file(char src[])
 
         initialize_reserved_words(rfp);
 
-        char buff[72];
-        int line = 0;
-        fgets(buff, 72, (FILE*) sfp);
-        while(!feof(sfp)) {
-                fprintf(lfp, "%-10d", ++line);
-                fputs(buff, lfp);
-                generate_tokens(line, buff, tfp, lfp);
-                fgets(buff, 72, (FILE*) sfp);
-        }
+        line = 0;
 
-        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
-                        ++line,
-                        "EOF",
-                        EOF_TYPE,
-                        0);
+        forward = get_next_line();
+
+        parse();
 
         fclose(sfp);
         fclose(lfp);
@@ -80,45 +75,70 @@ static void compile_file(char src[])
         fclose(rfp);
 }
 
-/*
- * Adds all tokens for the line into the token file.
- * Reports lexical errors to the listing file.
- *
- * Arguments: line -> line number that is currently being read.
- *            buff -> char array that contins a line of the source file.
- *            tfp -> Pointer to the token file that tokens are written to.
- *            lfp -> Pointer to the listing file, where errors are written.
- */
-static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
+static char* get_next_line()
 {
-        char *forward = buff;
-
-        while (*forward != '\n') {
-                forward = ws_machine(forward);
-
-                struct Token token = match_token(forward);
-                if (token.is_id) {
-                        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-p\n",
-                                        line,
-                                        token.lexeme,
-                                        token.token_type,
-                                        token.attribute.ptr);
-                } else {
-                        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
-                                        line,
-                                        token.lexeme,
-                                        token.token_type,
-                                        token.attribute.attribute);
-                }
-
-                if (token.token_type == 99) {
-                        fprintf(lfp, "LEXERR:   %-20s%s\n",
-                                error_codes[token.attribute.attribute- 1],
-                                token.lexeme);
-                }
-
-                forward = token.forward;
+        static char buff[72];
+        fgets(buff, 72, (FILE*) sfp);
+        if (feof(sfp)) {
+                buff[0] = EOF;
+                line++;
+        } else {
+                fprintf(lfp, "%-10d", ++line);
+                fputs(buff, lfp);
         }
+        return buff;
+}
+
+static void parse()
+{
+        while (tok.token_type != 34)
+                tok = get_token();
+        // match(34);
+}
+
+void match(int token_type)
+{
+        if (tok.token_type == token_type) {
+                if (token_type != 34)
+                        tok = get_token();
+        } else {
+                // throw synerr
+                tok = get_token();
+        }
+}
+
+void update_tok(struct Token token)
+{
+        tok = token;
+}
+
+static struct Token get_token()
+{
+        struct Token token = match_token();
+
+        forward = token.forward;
+
+        if (token.is_id) {
+                fprintf(tfp, "%4d\t%-20s\t%-2d\t%-p\n",
+                                line,
+                                token.lexeme,
+                                token.token_type,
+                                token.attribute.ptr);
+        } else {
+                fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
+                                line,
+                                token.lexeme,
+                                token.token_type,
+                                token.attribute.attribute);
+        }
+
+        if (token.token_type == 99) {
+                fprintf(lfp, "LEXERR:   %-20s%s\n",
+                        error_codes[token.attribute.attribute- 1],
+                        token.lexeme);
+        }
+
+        return token;
 }
 
 /*
@@ -129,8 +149,20 @@ static void generate_tokens(int line, char buff[], FILE *tfp, FILE *lfp)
  * Returns: Token that was matched from one of the machines. Some token will
  *          always be matched by the catch-all machine, so this is garunteed.
  */
-static struct Token match_token(char *forward)
+static struct Token match_token()
 {
+        forward = ws_machine(forward);
+
+        if (*forward == '\n') {
+                forward = get_next_line();
+                forward = ws_machine(forward);
+        }
+
+        if (*forward == EOF) {
+                return make_token("EOF", 34, 0, NULL);
+                forward = ws_machine(forward);
+        }
+
         union Optional_Token result;
 
         result = longreal_machine(forward);
