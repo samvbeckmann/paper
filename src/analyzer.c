@@ -153,7 +153,7 @@ static struct Token match_token()
 {
         forward = ws_machine(forward);
 
-        if (*forward == '\n') {
+        while (*forward == '\n') {
                 forward = get_next_line();
                 forward = ws_machine(forward);
         }
