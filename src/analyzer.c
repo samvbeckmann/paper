@@ -91,7 +91,7 @@ static char* get_next_line()
 
 static void parse()
 {
-        while (tok.token_type != 34)
+        while (tok.token_type != EOF_TYPE)
                 tok = get_token();
         // match(34);
 }
@@ -99,7 +99,7 @@ static void parse()
 void match(int token_type)
 {
         if (tok.token_type == token_type) {
-                if (token_type != 34)
+                if (token_type != EOF_TYPE)
                         tok = get_token();
         } else {
                 // throw synerr
