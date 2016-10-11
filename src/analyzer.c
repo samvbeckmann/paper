@@ -22,6 +22,17 @@ int main(int argc, char *argv[])
 }
 
 /*
+ * Constant array of error code strings. Used for reporting error in a human
+ * readable format in the listing file.
+ */
+const char * const error_codes[] = {
+                "Unrecognized Sym:",
+                "Extra Long ID:",
+                "Extra Long Integer:",
+                "Extra Long Real:",
+                "Leading Zeroes:" };
+
+/*
  * Compiles the given Pascal file.
  * Creates two files in the directory of the given file:
  *      - .listing file which displays the source with line numbers and errors.
@@ -181,4 +192,9 @@ static struct Token match_token()
                 return result.token;
 
         return catchall_machine(forward);
+}
+
+void synerr(char* expc, char* rec)
+{
+        fprintf(lfp, "SYNERR: Expected %s, received %s", expc, rec);
 }

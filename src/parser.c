@@ -2,6 +2,7 @@
 #include "word_defs.h"
 #include "analyzer.h"
 #include "synch_set.h"
+#include "parser.h"
 
 static void program_tail_call();
 static void program_tail_tail_call();
@@ -405,7 +406,7 @@ static void compound_statement_tail_call()
         case BEGIN:
         case IF:
         case WHILE:
-                optional_statements_call()
+                optional_statements_call();
                 match(END);
                 break;
         case END:
@@ -557,4 +558,278 @@ static void variable_tail_call()
         }
 }
 
-static vo
+static void procedure_statement_call()
+{
+        if (tok.token_type == CALL) {
+                match(CALL);
+                match(ID);
+                procedure_statement_tail_call();
+        } else {
+                synerr("'call'", tok.lexeme);
+                enum Derivation dir = procedure_statement;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void procedure_statement_tail_call()
+{
+        switch(tok.token_type) {
+        case PAREN_OPEN:
+                match(PAREN_OPEN);
+                expression_list_call();
+                match(PAREN_CLOSE);
+                break;
+        case SEMI:
+        case ELSE:
+        case END:
+                break;
+        default:
+                synerr("'(', ';', 'else', or 'end'", tok.lexeme);
+                enum Derivation dir = procedure_statement_tail;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void expression_list_call()
+{
+        switch(tok.token_type) {
+        case ID:
+        case NUM:
+        case PAREN_OPEN:
+        case NOT:
+        case ADDOP:
+                expression_call();
+                expression_list_tail_call();
+                break;
+        default:
+                synerr("'id', 'num', '(', 'not', '+', or '-'", tok.lexeme);
+                enum Derivation dir = expression_list;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void expression_list_tail_call()
+{
+        switch(tok.token_type) {
+        case COMMA:
+                match(COMMA);
+                expression_call();
+                expression_list_tail_call();
+                break;
+        case PAREN_CLOSE:
+                break;
+        default:
+                synerr("',' or ')'", tok.lexeme);
+                enum Derivation dir = expression_list_tail;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void expression_call()
+{
+        switch(tok.token_type) {
+        case ID:
+        case NUM:
+        case PAREN_OPEN:
+        case NOT:
+        case ADDOP:
+                simple_expression_call();
+                expression_tail_call();
+                break;
+        default:
+                synerr("'id', 'num', '(', 'not', '+', or '-'", tok.lexeme);
+                enum Derivation dir = expression;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void expression_tail_call()
+{
+        switch(tok.token_type) {
+        case RELOP:
+                match(RELOP);
+                simple_expression_call();
+                break;
+        case THEN:
+        case DO:
+        case BR_CLOSE:
+        case COMMA:
+        case PAREN_CLOSE:
+        case SEMI:
+        case ELSE:
+        case END:
+                break;
+        default:
+                synerr("'>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
+                enum Derivation dir = expression_tail;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void simple_expression_call()
+{
+        switch(tok.token_type) {
+        case ID:
+        case NUM:
+        case PAREN_OPEN:
+        case NOT:
+                term_call();
+                simple_expression_tail_call();
+                break;
+        case ADDOP:
+                sign_call();
+                term_call();
+                simple_expression_tail_call();
+                break;
+        default:
+                synerr("'id', 'num', '(' 'not', '+', or '-'", tok.lexeme);
+                enum Derivation dir = simple_expression;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void simple_expression_tail_call()
+{
+        switch(tok.token_type) {
+        case ADDOP:
+                match(ADDOP);
+                term_call();
+                simple_expression_tail_call();
+                break;
+        case RELOP:
+        case THEN:
+        case DO:
+        case BR_CLOSE:
+        case COMMA:
+        case PAREN_CLOSE:
+        case SEMI:
+        case ELSE:
+        case END:
+                break;
+        default:
+                synerr("'+', '-', 'or', '>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
+                enum Derivation dir = simple_expression_tail;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void term_call()
+{
+        switch(tok.token_type) {
+        case ID:
+        case NUM:
+        case PAREN_OPEN:
+        case NOT:
+                factor_call();
+                term_tail_call();
+                break;
+        default:
+                synerr("'id', 'num' '(', or 'not'", tok.lexeme);
+                enum Derivation dir = term;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void term_tail_call()
+{
+        switch(tok.token_type) {
+        case MULOP:
+                match(MULOP);
+                factor_call();
+                term_tail_call();
+                break;
+        case ADDOP:
+        case RELOP:
+        case THEN:
+        case DO:
+        case BR_CLOSE:
+        case COMMA:
+        case PAREN_CLOSE:
+        case SEMI:
+        case ELSE:
+        case END:
+                break;
+        default:
+                synerr("'*', '/', 'and', '+', '-', 'or', '>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
+                enum Derivation dir = term_tail;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void factor_call()
+{
+        switch(tok.token_type) {
+        case ID:
+                match(ID);
+                factor_tail_call();
+                break;
+        case NUM:
+                match(NUM);
+                break;
+        case PAREN_OPEN:
+                match(PAREN_OPEN);
+                expression_call();
+                match(PAREN_CLOSE);
+                break;
+        case NOT:
+                match(NOT);
+                factor_call();
+                break;
+        default:
+                synerr("'id', 'num' '(', or 'not'", tok.lexeme);
+                enum Derivation dir = factor;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void factor_tail_call()
+{
+        switch(tok.token_type) {
+        case BR_OPEN:
+                match(BR_OPEN);
+                expression_call();
+                match(BR_CLOSE);
+                break;
+        case MULOP:
+        case ADDOP:
+        case RELOP:
+        case THEN:
+        case DO:
+        case BR_CLOSE:
+        case COMMA:
+        case PAREN_CLOSE:
+        case SEMI:
+        case ELSE:
+        case END:
+                break;
+        default:
+                synerr("'[', '*', '/', 'and', '+', '-', 'or', '>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
+                enum Derivation dir = factor_tail;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
+
+static void sign_call()
+{
+        if (tok.token_type == ADDOP &&
+                        (tok.attribute.attribute == ADD || tok.attribute.attribute == SUB)) {
+                match(ADDOP);
+        } else {
+                synerr("'+' or '-'", tok.lexeme);
+                enum Derivation dir = sign;
+                while (!synch(dir, tok.token_type))
+                        tok = get_token();
+        }
+}
