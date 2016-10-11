@@ -17,6 +17,7 @@
 #define OF 22
 #define VAR 23
 #define EOF_TYPE 24
+#define CALL 25
 
 #define SEMI 30
 #define COMMA 31
