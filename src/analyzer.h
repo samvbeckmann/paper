@@ -3,6 +3,8 @@
 
 #include "machines.h"
 
+extern struct Token tok;
+
 /*
  * Constant array of error code strings. Used for reporting error in a human
  * readable format in the listing file.
@@ -41,5 +43,8 @@ static struct Token get_token();
  *          always be matched by the catch-all machine, so this is garunteed.
  */
 static struct Token match_token();
+
+struct Token get_token();
+
 
 #endif

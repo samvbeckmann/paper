@@ -107,12 +107,7 @@ void match(int token_type)
         }
 }
 
-void update_tok(struct Token token)
-{
-        tok = token;
-}
-
-static struct Token get_token()
+struct Token get_token()
 {
         struct Token token = match_token();
 
