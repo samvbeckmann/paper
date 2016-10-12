@@ -1,20 +1,20 @@
 program numbertest(input, output);
-var num1, num2: integer;
+var num1: integer; var num2: integer;
 
-function fibonacci(first, second, num: integer): integer;
+procedure fibonacci(first, second, num: integer);
 begin
     if num <= 0 then fibonacci := second
     else fibonacci := fibonacci(second, first + second, num - 1)
 end;
 
-function gcd(first, second: integer): integer;
+procedure gcd(first, second: integer);
 begin
     if second = 0 then gcd := first
     else gcd := gcd(second, first mod second)
 end;
 
-function sumbelow(first, second, max: integer): integer;
-var temp total: integer;
+procedure sumbelow(first, second, max: integer);
+var temp:integer; var total: integer;
 begin
     temp := 1;
     total := 0;
