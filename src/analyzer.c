@@ -5,6 +5,7 @@
 #include "analyzer.h"
 #include "symbols.h"
 #include "word_defs.h"
+#include "parser.h"
 
 // Class variables
 int line;
@@ -102,9 +103,9 @@ static char* get_next_line()
 
 static void parse()
 {
-        while (tok.token_type != EOF_TYPE)
-                tok = get_token();
-        // match(34);
+        tok = get_token();
+        program_call();
+        match(EOF_TYPE);
 }
 
 void match(int token_type)
@@ -196,5 +197,5 @@ static struct Token match_token()
 
 void synerr(char* expc, char* rec)
 {
-        fprintf(lfp, "SYNERR: Expected %s, received %s", expc, rec);
+        fprintf(lfp, "SYNERR: Expected %s, received %s\n", expc, rec);
 }
