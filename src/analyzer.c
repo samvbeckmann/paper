@@ -110,11 +110,13 @@ static void parse()
 
 void match(int token_type)
 {
-        if (tok.token_type == token_type) {
-                if (token_type != EOF_TYPE)
-                        tok = get_token();
+        if (tok.token_type == EOF_TYPE) {
+            return;
+        } else if (tok.token_type == token_type) {
+                tok = get_token();
         } else {
-                // throw synerr
+                // TODO: throw synerr
+                synerr(type_str(token_type), tok.lexeme);
                 tok = get_token();
         }
 }
@@ -166,8 +168,7 @@ static struct Token match_token()
         }
 
         if (*forward == EOF) {
-                return make_token("EOF", 34, 0, NULL);
-                forward = ws_machine(forward);
+                return make_token("EOF", EOF_TYPE, 0, NULL);
         }
 
         union Optional_Token result;
@@ -197,5 +198,76 @@ static struct Token match_token()
 
 void synerr(char* expc, char* rec)
 {
-        fprintf(lfp, "SYNERR: Expected %s, received %s\n", expc, rec);
+        fprintf(lfp, "SYNERR: Expected %s, received '%s'\n", expc, rec);
+}
+
+static char * type_str(int tokenType) {
+        switch (tokenType) {
+        case PROGRAM:
+                return "'program'";
+        case FUNCTION:
+                return "'function'";
+        case PROCEDURE:
+                return "'procedure'";
+        case BEGIN:
+                return "'begin'";
+        case END:
+                return "'end'";
+        case IF:
+                return "'if'";
+        case THEN:
+                return "'then'";
+        case ELSE:
+                return "'else'";
+        case WHILE:
+                return "'while'";
+        case DO:
+                return "'do'";
+        case NOT:
+                return "'not'";
+        case ARRAY:
+                return "'array'";
+        case OF:
+                return "'of'";
+        case VAR:
+                return "'var'";
+        case EOF_TYPE:
+                return "'EOF'";
+        case CALL:
+                return "'call'";
+        case SEMI:
+                return "';'";
+        case COMMA:
+                return "','";
+        case PAREN_OPEN:
+                return "'('";
+        case PAREN_CLOSE:
+                return "')'";
+        case BR_OPEN:
+                return "'['";
+        case BR_CLOSE:
+                return "']'";
+        case COLON:
+                return "':'";
+        case ASSIGN:
+                return "'='";
+        case DOT:
+                return "'.'";
+        case TWO_DOT:
+                return "'..'";
+        case NUM:
+                return "a number";
+        case ID:
+                return "an id";
+        case MULOP:
+                return "'*', '/', or 'and'";
+        case ADDOP:
+                return "'+', '-', or 'or'";
+        case RELOP:
+                return "'>', '<', '>=', '<=', '<>'";
+        case STANDARD_TYPE:
+                return "'integer' or 'real'";
+        default:
+                return "";
+        }
 }

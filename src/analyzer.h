@@ -16,6 +16,7 @@ extern struct Token tok;
 static void compile_file(char src[]);
 
 static char* get_next_line();
+static char* type_str(int token_type);
 static void parse();
 void match(int token_type);
 void update_tok(struct Token token);

@@ -180,8 +180,7 @@ static void declarations_tail_call()
 static void type_call()
 {
         switch(tok.token_type) {
-        case INTEGER:
-        case REAL:
+        case STANDARD_TYPE:
                 standard_type_call();
                 break;
         case ARRAY:
@@ -205,11 +204,8 @@ static void type_call()
 static void standard_type_call()
 {
         switch(tok.token_type) {
-        case INTEGER:
-                match(INTEGER);
-                break;
-        case REAL:
-                match(REAL);
+        case STANDARD_TYPE:
+                match(STANDARD_TYPE);
                 break;
         default:
                 synerr("'integer' or 'real'", tok.lexeme);
