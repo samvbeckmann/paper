@@ -3,17 +3,17 @@ var num1: integer; var num2: integer;
 
 procedure fibonacci(first: integer; second: integer; num: integer);
 begin
-    if num <= 0 then fibonacci := second
-    else fibonacci := call fibonacci(second, first + second, num - 1)
+    if num <= 0 then fibonacci := second;
+    call fibonacci(second, first + second, num - 1)
 end;
 
-procedure gcd(first, second: integer);
+procedure gcd(first: integer; second: integer);
 begin
-    if second = 0 then gcd := first
-    else gcd := gcd(second, first mod second)
+    if second = 0 then gcd := first;
+    call gcd(second, first mod second)
 end;
 
-procedure sumbelow(first, second, max: integer);
+procedure sumbelow(first: integer; second: real; max: integer);
 var temp:integer; var total: integer;
 begin
     temp := 1;
@@ -28,9 +28,9 @@ begin
 end;
 
 begin
-    read(num1, num2);
-    writeln(num1, fibonacci(0, 1, num1 - 1));
-    writeln(gcd(num1, num2));
-    write(num1, num2);
-    writeln(sumbelow(num1, num2, 300));
+    call read(num1, num2);
+    call writeln(num1, 3);
+    call writeln(5);
+    call write(num1, num2);
+    call writeln(7)
 end.
