@@ -121,6 +121,11 @@ void match(int token_type)
         }
 }
 
+/**
+ * Gets the next token from the file.
+ *
+ * Returns:
+ */
 struct Token get_token()
 {
         struct Token token = match_token();
@@ -196,11 +201,22 @@ static struct Token match_token()
         return catchall_machine(forward);
 }
 
+/**
+ * Prints a syntax error to the list file.
+ *
+ * Arguments: expc -> String of expected values.
+ *            rec -> String of received value.
+ */
 void synerr(char* expc, char* rec)
 {
         fprintf(lfp, "SYNERR: Expected %s, received '%s'\n", expc, rec);
 }
 
+/**
+ * Gets the string associated with each token type.
+ *
+ * Arguments: tokenType -> token type to get string from
+ */
 static char * type_str(int tokenType) {
         switch (tokenType) {
         case PROGRAM:
