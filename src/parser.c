@@ -484,6 +484,7 @@ static void statement_call()
                 break;
         case BEGIN:
                 compound_statement_call();
+                break;
         case IF:
                 match(IF);
                 expression_call();
