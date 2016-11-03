@@ -1,10 +1,10 @@
 program numbertest(input, output);
 var num1: integer; var num2: integer;
 
-procedure fibonacci(first, second, num: integer);
+procedure fibonacci(first: integer; second: integer; num: integer);
 begin
     if num <= 0 then fibonacci := second
-    else fibonacci := fibonacci(second, first + second, num - 1)
+    else fibonacci := call fibonacci(second, first + second, num - 1)
 end;
 
 procedure gcd(first, second: integer);
