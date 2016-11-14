@@ -115,7 +115,6 @@ void match(int token_type)
         } else if (tok.token_type == token_type) {
                 tok = get_token();
         } else {
-                // TODO: throw synerr
                 synerr(type_str(token_type), tok.lexeme);
                 tok = get_token();
         }
@@ -209,7 +208,7 @@ static struct Token match_token()
  */
 void synerr(char* expc, char* rec)
 {
-        fprintf(lfp, "SYNERR: Expected %s, received '%s'\n", expc, rec);
+        fprintf(lfp, "SYNERR:   Expected %s, received '%s'\n", expc, rec);
 }
 
 /**
