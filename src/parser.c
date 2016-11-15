@@ -29,21 +29,30 @@ static void statement_list_call();
 static void statement_list_tail_call();
 static void statement_call();
 static void statement_tail_call();
-static void variable_call();
-static void variable_tail_call();
+static enum Type variable_call();
+static enum Type variable_tail_call();
 static void procedure_statement_call();
 static void procedure_statement_tail_call();
 static void expression_list_call();
 static void expression_list_tail_call();
-static void expression_call();
-static void expression_tail_call();
-static void simple_expression_call();
-static void simple_expression_tail_call();
-static void term_call();
-static void term_tail_call();
-static void factor_call();
-static void factor_tail_call();
+static enum Type expression_call();
+static enum Type expression_tail_call();
+static enum Type simple_expression_call();
+static enum Type simple_expression_tail_call();
+static enum Type term_call();
+static enum Type term_tail_call();
+static enum Type factor_call();
+static enum Type factor_tail_call();
 static void sign_call();
+
+enum Type {
+        INT,
+        REAL_TYPE,
+        AINT,
+        AREAL,
+        BOOL,
+        ERR
+};
 
 void program_call()
 {
@@ -524,34 +533,48 @@ static void statement_tail_call()
         }
 }
 
-static void variable_call()
+static enum Type variable_call()
 {
         if (tok.token_type == ID) {
-                match(ID);
-                variable_tail_call();
+                char* lex = match(ID);
+                return variable_tail_call(get_type(lex));
         } else {
                 synerr("'id'", tok.lexeme);
                 enum Derivation dir = variable;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void variable_tail_call()
+static enum Type variable_tail_call(enum Type inherited)
 {
         switch(tok.token_type) {
         case BR_OPEN:
                 match(BR_OPEN);
-                expression_call();
+                enum Type exp_type = expression_call();
                 match(BR_CLOSE);
-                break;
+                if (exp_type == INT && inherited == AINT) {
+                        return INT;
+                } else if (exp_type == INT && inherited == AREAL) {
+                        return REAL_TYPE;
+                } else if (exp_type != INT || exp_type != REAL_TYPE) {
+                        // TODO: Print semantic error
+                        return ERR;
+                } else if (inherited != AINT || inherited != AREAL) {
+                        // TODO: Print semantic error
+                        return ERR;
+                } else {
+                        return ERR;
+                }
         case ASSIGN:
-                break;
+                return inherited;
         default:
                 synerr("'[' or '='", tok.lexeme);
                 enum Derivation dir = variable_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
@@ -626,7 +649,7 @@ static void expression_list_tail_call()
         }
 }
 
-static void expression_call()
+static enum Type expression_call()
 {
         switch(tok.token_type) {
         case ID:
@@ -634,24 +657,29 @@ static void expression_call()
         case PAREN_OPEN:
         case NOT:
         case ADDOP:
-                simple_expression_call();
-                expression_tail_call();
-                break;
+                enum Type exp_type = simple_expression_call();
+                return expression_tail_call(exp_type);
         default:
                 synerr("'id', 'num', '(', 'not', '+', or '-'", tok.lexeme);
                 enum Derivation dir = expression;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void expression_tail_call()
+static enum Type expression_tail_call(enum Type inherited)
 {
         switch(tok.token_type) {
         case RELOP:
                 match(RELOP);
-                simple_expression_call();
-                break;
+                enum Type exp_type = simple_expression_call();
+                if (exp_type == inherited) {
+                        return exp_type;
+                } else {
+                        // TODO: Print semantic error
+                        return ERR;
+                }
         case THEN:
         case DO:
         case BR_CLOSE:
@@ -660,46 +688,52 @@ static void expression_tail_call()
         case SEMI:
         case ELSE:
         case END:
-                break;
+                return inherited;
         default:
                 synerr("'>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
                 enum Derivation dir = expression_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void simple_expression_call()
+static enum Type simple_expression_call()
 {
         switch(tok.token_type) {
         case ID:
         case NUM:
         case PAREN_OPEN:
         case NOT:
-                term_call();
-                simple_expression_tail_call();
-                break;
+                enum Type t_type = term_call();
+                return simple_expression_tail_call(t_type);
         case ADDOP:
                 sign_call();
-                term_call();
-                simple_expression_tail_call();
-                break;
+                enum Type t_type = term_call();
+                return simple_expression_tail_call(t_type);
         default:
                 synerr("'id', 'num', '(' 'not', '+', or '-'", tok.lexeme);
                 enum Derivation dir = simple_expression;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void simple_expression_tail_call()
+static enum Type simple_expression_tail_call(enum Type inherited)
 {
         switch(tok.token_type) {
         case ADDOP:
                 match(ADDOP);
-                term_call();
-                simple_expression_tail_call();
-                break;
+                enum Type t_type = term_call();
+                enum Type tail_type ;
+                if (t_type == inherited) {
+                        tail_type = t_type;
+                } else {
+                        // TODO: Print semantic error
+                        tail_type = ERR;
+                }
+                return simple_expression_tail_call(tail_type);
         case RELOP:
         case THEN:
         case DO:
@@ -709,41 +743,48 @@ static void simple_expression_tail_call()
         case SEMI:
         case ELSE:
         case END:
-                break;
+                return inherited;
         default:
                 synerr("'+', '-', 'or', '>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
                 enum Derivation dir = simple_expression_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void term_call()
+static enum Type term_call()
 {
         switch(tok.token_type) {
         case ID:
         case NUM:
         case PAREN_OPEN:
         case NOT:
-                factor_call();
-                term_tail_call();
-                break;
+                enum Type fac_type = factor_call();
+                return term_tail_call(fac_type);
         default:
                 synerr("'id', 'num' '(', or 'not'", tok.lexeme);
                 enum Derivation dir = term;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void term_tail_call()
+static enum Type term_tail_call(enum Type inherited)
 {
         switch(tok.token_type) {
         case MULOP:
                 match(MULOP);
-                factor_call();
-                term_tail_call();
-                break;
+                enum Type fac_type = factor_call();
+                enum Type term_in;
+                if (fac_type == inherited) {
+                        term_in = fac_type;
+                } else {
+                        // TODO: Print semantic error
+                        term_in = ERR;
+                }
+                return term_tail_call(term_in);
         case ADDOP:
         case RELOP:
         case THEN:
@@ -754,50 +795,71 @@ static void term_tail_call()
         case SEMI:
         case ELSE:
         case END:
-                break;
+                return inherited;
         default:
                 synerr("'*', '/', 'and', '+', '-', 'or', '>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
                 enum Derivation dir = term_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void factor_call()
+static enum Type factor_call()
 {
         switch(tok.token_type) {
         case ID:
-                match(ID);
-                factor_tail_call();
-                break;
+                char* lex = match(ID);
+                enum Type lex_type = get_type(lex);
+                return factor_tail_call(lex_type);
         case NUM:
                 match(NUM);
-                break;
+                break; // TODO: Need to return num's type
         case PAREN_OPEN:
                 match(PAREN_OPEN);
-                expression_call();
+                enum Type exp_type = expression_call();
                 match(PAREN_CLOSE);
-                break;
+                return exp_type;
         case NOT:
                 match(NOT);
-                factor_call();
-                break;
+                enum Type fac_type = factor_call();
+                if (fac_type == BOOL) {
+                        return fac_type;
+                } else if (fac_type == ERR) {
+                        return fac_type;
+                } else {
+                        // TODO: Print semantic error
+                        return ERR;
+                }
         default:
                 synerr("'id', 'num' '(', or 'not'", tok.lexeme);
                 enum Derivation dir = factor;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR;
         }
 }
 
-static void factor_tail_call()
+static enum Type factor_tail_call(enum Type inherited)
 {
         switch(tok.token_type) {
         case BR_OPEN:
                 match(BR_OPEN);
-                expression_call();
+                enum Type exp_type = expression_call();
                 match(BR_CLOSE);
-                break;
+                if (exp_type == INT && inherited == AINT) {
+                        return INT;
+                } else if (exp_type == REAL_TYPE && inherited == AREAL) {
+                        return REAL_TYPE;
+                } else if (exp_type != INT || exp_type != ERR) {
+                        // TODO: Print semantic error
+                        return ERR;
+                } else if (inherited != AINT || inherited != AREAL) {
+                        // TODO: Print semantic error
+                        return ERR;
+                } else {
+                        return ERR;
+                }
         case MULOP:
         case ADDOP:
         case RELOP:
@@ -809,12 +871,13 @@ static void factor_tail_call()
         case SEMI:
         case ELSE:
         case END:
-                break;
+                return inherited;
         default:
                 synerr("'[', '*', '/', 'and', '+', '-', 'or', '>', '<', '<=' '>=', '<>', '=', 'then', 'do', ']', ',', ')', ';', 'else', or 'end'", tok.lexeme);
                 enum Derivation dir = factor_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return ERR; // NOTE: Not sure about this
         }
 }
 
