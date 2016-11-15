@@ -1,5 +1,8 @@
-0123 12345678901
-1234.1234E+123 1234.1234E-0 1234.1234E+03
-123456.123 123.4567890 00.73 24.000
-^% #
-abc123def456
+program errortest(input, output;
+var : integer; var num : ;
+
+procedure errortest(first, second: integer);
+begin
+    if first then second := first;
+    errortest();
+end
