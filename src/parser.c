@@ -30,35 +30,41 @@ static void statement_list_tail_call();
 static void statement_call();
 static void statement_tail_call();
 static enum Type variable_call();
-static enum Type variable_tail_call();
+static enum Type variable_tail_call(enum Type inherited);
 static void procedure_statement_call();
 static void procedure_statement_tail_call();
 static void expression_list_call();
 static void expression_list_tail_call();
 static enum Type expression_call();
-static enum Type expression_tail_call();
+static enum Type expression_tail_call(enum Type inherited);
 static enum Type simple_expression_call();
-static enum Type simple_expression_tail_call();
+static enum Type simple_expression_tail_call(enum Type inherited);
 static enum Type term_call();
-static enum Type term_tail_call();
+static enum Type term_tail_call(enum Type inherited);
 static enum Type factor_call();
-static enum Type factor_tail_call();
+static enum Type factor_tail_call(enum Type inherited);
 static void sign_call();
 
+
 enum Type {
-        INT,
-        REAL_TYPE,
-        AINT,
-        AREAL,
-        BOOL,
-        ERR
+        INT, REAL_TYPE, AINT, AREAL, BOOL, ERR
 };
+
+static void noop() {}
+
+static enum Type get_type(char *lexeme)
+{
+        // TODO: write function
+        return INT;
+}
 
 void program_call()
 {
         if (tok.token_type == PROGRAM) {
                 match(PROGRAM);
+                struct Token id_tok = tok;
                 match(ID);
+                check_add_scope(tok.lexeme); // TODO 
                 match(PAREN_OPEN);
                 id_list_call();
                 match(PAREN_CLOSE);
@@ -536,8 +542,9 @@ static void statement_tail_call()
 static enum Type variable_call()
 {
         if (tok.token_type == ID) {
-                char* lex = match(ID);
-                return variable_tail_call(get_type(lex));
+                struct Token id_tok = tok;
+                match(ID);
+                return variable_tail_call(get_type(id_tok.lexeme));
         } else {
                 synerr("'id'", tok.lexeme);
                 enum Derivation dir = variable;
@@ -651,13 +658,15 @@ static void expression_list_tail_call()
 
 static enum Type expression_call()
 {
+        enum Type exp_type;
+
         switch(tok.token_type) {
         case ID:
         case NUM:
         case PAREN_OPEN:
         case NOT:
         case ADDOP:
-                enum Type exp_type = simple_expression_call();
+                exp_type = simple_expression_call();
                 return expression_tail_call(exp_type);
         default:
                 synerr("'id', 'num', '(', 'not', '+', or '-'", tok.lexeme);
@@ -700,16 +709,17 @@ static enum Type expression_tail_call(enum Type inherited)
 
 static enum Type simple_expression_call()
 {
+        enum Type t_type;
         switch(tok.token_type) {
         case ID:
         case NUM:
         case PAREN_OPEN:
         case NOT:
-                enum Type t_type = term_call();
+                t_type = term_call();
                 return simple_expression_tail_call(t_type);
         case ADDOP:
                 sign_call();
-                enum Type t_type = term_call();
+                t_type = term_call();
                 return simple_expression_tail_call(t_type);
         default:
                 synerr("'id', 'num', '(' 'not', '+', or '-'", tok.lexeme);
@@ -755,12 +765,13 @@ static enum Type simple_expression_tail_call(enum Type inherited)
 
 static enum Type term_call()
 {
+        enum Type fac_type;
         switch(tok.token_type) {
         case ID:
         case NUM:
         case PAREN_OPEN:
         case NOT:
-                enum Type fac_type = factor_call();
+                fac_type = factor_call();
                 return term_tail_call(fac_type);
         default:
                 synerr("'id', 'num' '(', or 'not'", tok.lexeme);
@@ -807,14 +818,19 @@ static enum Type term_tail_call(enum Type inherited)
 
 static enum Type factor_call()
 {
+        struct Token id_tok;
+        enum Type num_type;
         switch(tok.token_type) {
         case ID:
-                char* lex = match(ID);
-                enum Type lex_type = get_type(lex);
+                id_tok = tok;
+                match(ID);
+                enum Type lex_type = get_type(id_tok.lexeme);
+                // TODO: Verify id is in scope
                 return factor_tail_call(lex_type);
         case NUM:
+                num_type = tok.attribute.attribute == 1 ? INT : REAL_TYPE;
                 match(NUM);
-                break; // TODO: Need to return num's type
+                return num_type;
         case PAREN_OPEN:
                 match(PAREN_OPEN);
                 enum Type exp_type = expression_call();
