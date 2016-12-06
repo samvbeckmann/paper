@@ -3,6 +3,8 @@
 #include "analyzer.h"
 #include "synch_set.h"
 #include "parser.h"
+#include "types.h"
+#include "symbols.h"
 
 static void program_tail_call();
 static void program_tail_tail_call();
@@ -45,13 +47,6 @@ static enum Type factor_call();
 static enum Type factor_tail_call(enum Type inherited);
 static void sign_call();
 
-
-enum Type {
-        INT, REAL_TYPE, AINT, AREAL, BOOL, ERR
-};
-
-static void noop() {}
-
 static enum Type get_type(char *lexeme)
 {
         // TODO: write function
@@ -64,7 +59,7 @@ void program_call()
                 match(PROGRAM);
                 struct Token id_tok = tok;
                 match(ID);
-                check_add_scope(tok.lexeme); // TODO 
+                check_add_green_node(tok.lexeme, PG_NAME); // TODO: Error handling
                 match(PAREN_OPEN);
                 id_list_call();
                 match(PAREN_CLOSE);

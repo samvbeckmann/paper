@@ -2,17 +2,22 @@
 #define SYMBOLS_H
 
 #include "machines.h"
+#include "types.h"
 #include <stdio.h>
 
-/*
+/**
  * A Symbol for an ID in the symbol table.
- *
+ * REVIEW: Needs Documentaton
  * Fields: word -> Literal of the lexeme symbol.
  *         ptr -> Pointer to the next symbol in the table.
  */
 struct Symbol {
         char word[11];
-        struct Symbol *ptr;
+        enum Type type;
+        int offset;
+        struct Symbol *content;
+        struct Symbol *previous;
+        struct Symbol *next;
 };
 
 /*
@@ -28,6 +33,11 @@ struct Reserved_Word {
         int token_type;
         int attribute;
         struct Reserved_Word *next;
+};
+
+struct SymbolStack {
+        struct Symbol *symbol;
+        struct SymbolStack *previous;
 };
 
 /*
@@ -49,6 +59,12 @@ extern struct Reserved_Word *reserved_word_table;
  * Returns: A pointer to the symbol in the table.
  */
 struct Symbol * add_symbol(char word[]);
+
+void check_add_green_node(char lex[], enum Type type);
+
+void check_add_blue_node(char lex[], enum Type type, int offset);
+
+void pop_scope_stack();
 
 /*
  * Checks if a given word is in the reserved word table.

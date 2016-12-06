@@ -5,6 +5,11 @@
 
 struct Symbol *global_sym_table;
 struct Reserved_Word *reserved_word_table;
+struct Symbol *eye;
+struct Symbol *forward_eye;
+struct SymbolStack *scope_stack;
+
+static int is_green_node(struct Symbol node);
 
 /*
  * Adds a symbol to the symbol table if it is not already present. If the symbol
@@ -18,17 +23,77 @@ struct Symbol * add_symbol(char word[])
 {
         struct Symbol *current = global_sym_table;
 
-        while (current -> ptr != NULL) {
+        while (current -> next != NULL) {
                 if (strcmp(current -> word, word) == 0)
                         return current;
-                current = current -> ptr;
+                current = current -> next;
         }
 
-        current -> ptr = malloc(sizeof(struct Symbol));
+        current -> next = malloc(sizeof(struct Symbol));
         strcpy(current -> word, word);
-        current -> ptr -> ptr = NULL;
+        current -> next -> next = NULL;
 
         return current;
+}
+
+void check_add_green_node(char lex[], enum Type type)
+{
+        struct Symbol *current = eye;
+        while (current -> previous != NULL) {
+                if (is_green_node(*current)) {
+                        if (strcmp(lex, current -> word)) {
+                                // TODO: Name conflict here
+                        }
+                }
+        }
+
+        // No name conflicts
+        strcpy(forward_eye -> word, lex);
+        forward_eye -> type = type;
+        forward_eye -> offset = 0;
+        forward_eye -> previous = eye;
+        forward_eye -> next = malloc(sizeof(struct Symbol));
+        forward_eye -> content = malloc(sizeof(struct Symbol));
+
+        eye = forward_eye;
+        forward_eye = eye -> content;
+
+        // Add scope to stack
+        struct SymbolStack *push = malloc(sizeof(struct SymbolStack));
+        push -> symbol = eye;
+        push -> previous = scope_stack;
+        scope_stack = push;
+}
+
+void check_add_blue_node(char lex[], enum Type type, int offset)
+{
+        struct Symbol *current = eye;
+        while(!is_green_node(*current)) {
+                if (strcmp(lex, current -> word)) {
+                        // TODO: Name conflict here
+                }
+        }
+
+        strcpy(forward_eye -> word, lex);
+        forward_eye -> type = type;
+        forward_eye -> offset = offset;
+        forward_eye -> previous = eye;
+        forward_eye -> next = malloc(sizeof(struct Symbol));
+
+        eye = forward_eye;
+        forward_eye = eye -> next;
+}
+
+void pop_scope_stack()
+{
+        eye = scope_stack -> symbol;
+        forward_eye = eye -> next;
+        scope_stack = scope_stack -> previous;
+}
+
+static int is_green_node(struct Symbol node)
+{
+        return node.type == PROC || node.type == PG_NAME;
 }
 
 /*

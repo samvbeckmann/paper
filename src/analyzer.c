@@ -44,7 +44,7 @@ const char * const error_codes[] = {
 static void compile_file(char src[])
 {
         global_sym_table = malloc(sizeof(struct Symbol));
-        global_sym_table -> ptr = NULL;
+        global_sym_table -> next = NULL;
 
         FILE *rfp;
 
