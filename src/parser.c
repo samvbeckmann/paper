@@ -226,20 +226,44 @@ static struct Decoration type_call()
         switch(tok.token_type) {
         case STANDARD_TYPE:
                 return standard_type_call();
-        case ARRAY: // TODO: Array type processing
+        case ARRAY: // REVIEW: Not sure about the logic of array type processing
+                int arrayLen;
+                int ok = 0;
                 match(ARRAY);
                 match(BR_OPEN);
-                int num1 = atoi(tok.lexeme);
+                struct Token num1 = tok;
                 match(NUM);
                 match(TWO_DOT);
-                int num2 = atoi(tok.lexeme);
+                struct Token num2 = tok;
                 match(NUM);
                 match(BR_CLOSE);
-                
+                if (num1.token_type == NUM && num2.token_type == NUM) {
+                        if (num1.token_type == REAL || num2.token_type == REAL) {
+                                // TODO: Print semantic error
+                        } else if (num1.token_type == INTEGER && num2.token_type == INTEGER) {
+                                arrayLen = atoi(num2.lexeme) - atoi(num1.lexeme) + 1;
+                                ok = 1;
+                        } else {
+                                // TODO: Unexpected error
+                        }
+                } else if (num1.token_type != LEXERR && num2.token_type != LEXERR) {
+                        // TODO: Print semantic error
+                }
                 match(OF);
-                standard_type_call();
-                return make_type_decoration(ERR); // FIXME: Compile fix
-                break;
+                struct Decoration std_type = standard_type_call();
+                if (ok) {
+                        int width = arrayLen * std_type.width;
+                        if (std_type.type == INT)
+                                return make_decoration(AINT, width);
+                        else if (std_type.type == REAL)
+                                return make_decoration(AREAL, width);
+                        else {
+                                // TODO: Print semantic error
+                                return make_type_decoration(ERR);
+                        }
+                } else {
+                        return make_type_decoration(ERR);
+                }
         default:
                 synerr("'integer', 'real' or 'array'", tok.lexeme);
                 enum Derivation dir = type;
