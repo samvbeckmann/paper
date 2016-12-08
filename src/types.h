@@ -13,7 +13,13 @@ enum Type
         PROC,
         OK,
         UNDEC,
-        ERR
+        ERR,
+        PP_INT,
+        PP_REAL,
+        PP_AINT,
+        PP_AREAL
 };
+
+enum Type make_param(enum Type input);
 
 #endif

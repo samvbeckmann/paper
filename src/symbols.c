@@ -7,11 +7,12 @@ struct Symbol *global_sym_table;
 struct Reserved_Word *reserved_word_table;
 struct Symbol *eye;
 struct Symbol *forward_eye;
-struct SymbolStack *scope_stack;
+static struct SymbolStack *scope_stack;
 
 static int is_green_node(struct Symbol node);
 
-/*
+/**
+ * REVIEW: Remove this function.
  * Adds a symbol to the symbol table if it is not already present. If the symbol
  * is already present, returns a pointer to that Symbol.
  *
@@ -36,13 +37,14 @@ struct Symbol * add_symbol(char word[])
         return current;
 }
 
-void check_add_green_node(char lex[], enum Type type)
+struct Symbol * check_add_green_node(char lex[], enum Type type)
 {
         struct Symbol *current = eye;
         while (current -> previous != NULL) {
                 if (is_green_node(*current)) {
                         if (strcmp(lex, current -> word)) {
-                                // TODO: Name conflict here
+                                printf("SEMERR:   Reuse of scope name '%s'\n", lex);
+                                return NULL;
                         }
                 }
         }
@@ -63,6 +65,8 @@ void check_add_green_node(char lex[], enum Type type)
         push -> symbol = eye;
         push -> previous = scope_stack;
         scope_stack = push;
+
+        return eye;
 }
 
 void check_add_blue_node(char lex[], enum Type type, int offset)

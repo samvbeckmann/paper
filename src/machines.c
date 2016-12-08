@@ -309,12 +309,13 @@ union Optional_Token id_res_machine(char *forward)
                 res.token.forward = forward;
                 return res;
         } else {
-                struct Symbol *sym_ptr = add_symbol(word);
+                // REVIEW: Removed use of symbol table here for now.
+                // struct Symbol *sym_ptr = add_symbol(word);
                 struct Token token;
                 strcpy(token.lexeme, word);
                 token.token_type = ID;
                 token.is_id = 1;
-                token.attribute.ptr = sym_ptr;
+                // token.attribute.ptr = sym_ptr;
                 token.forward = forward;
                 return wrap_token(token);
         }

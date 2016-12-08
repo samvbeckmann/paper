@@ -15,6 +15,7 @@ struct Symbol {
         char word[11];
         enum Type type;
         int offset;
+        int num_parms;
         struct Symbol *content;
         struct Symbol *previous;
         struct Symbol *next;
@@ -60,7 +61,7 @@ extern struct Reserved_Word *reserved_word_table;
  */
 struct Symbol * add_symbol(char word[]);
 
-void check_add_green_node(char lex[], enum Type type);
+struct Symbol * check_add_green_node(char lex[], enum Type type);
 
 void check_add_blue_node(char lex[], enum Type type, int offset);
 

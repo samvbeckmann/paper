@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "machines.h"
 #include "word_defs.h"
 #include "analyzer.h"
@@ -12,8 +13,8 @@ static void id_list_call();
 static void id_list_tail_call();
 static void declarations_call();
 static void declarations_tail_call();
-static void type_call();
-static void standard_type_call();
+static struct Decoration type_call();
+static struct Decoration standard_type_call();
 static void sub_declarations_call();
 static void sub_declarations_tail_call();
 static void sub_declaration_call();
@@ -31,20 +32,20 @@ static void statement_list_call();
 static void statement_list_tail_call();
 static void statement_call();
 static void statement_tail_call();
-static enum Type variable_call();
-static enum Type variable_tail_call(enum Type inherited);
+static struct Decoration variable_call();
+static struct Decoration variable_tail_call(struct Decoration inherited);
 static void procedure_statement_call();
 static void procedure_statement_tail_call();
 static void expression_list_call();
 static void expression_list_tail_call();
-static enum Type expression_call();
-static enum Type expression_tail_call(enum Type inherited);
-static enum Type simple_expression_call();
-static enum Type simple_expression_tail_call(enum Type inherited);
-static enum Type term_call();
-static enum Type term_tail_call(enum Type inherited);
-static enum Type factor_call();
-static enum Type factor_tail_call(enum Type inherited);
+static struct Decoration expression_call();
+static struct Decoration expression_tail_call(struct Decoration inherited);
+static struct Decoration simple_expression_call();
+static struct Decoration simple_expression_tail_call(struct Decoration inherited);
+static struct Decoration term_call();
+static struct Decoration term_tail_call(struct Decoration inherited);
+static struct Decoration factor_call();
+static struct Decoration factor_tail_call(struct Decoration inherited);
 static void sign_call();
 
 static enum Type get_type(char *lexeme)
@@ -53,13 +54,37 @@ static enum Type get_type(char *lexeme)
         return INT;
 }
 
+/**
+ * Creates a proper Decoration struct from a given type.
+ * @param  in_type Type to assign the type field of the Decoration struct
+ * @return         A new Decoration that contains the type of the input
+ */
+static struct Decoration make_type_decoration(enum Type in_type)
+{
+        struct Decoration *dec = malloc(sizeof(struct Decoration));
+        dec -> type = in_type;
+        return *dec;
+}
+
+static struct Decoration make_decoration(enum Type in_type, int in_width)
+{
+        struct Decoration *dec = malloc(sizeof(struct Decoration));
+        dec -> type = in_type;
+        dec -> width = in_width;
+        return *dec;
+}
+
+/**
+ * Initializes the recursive decent parser.
+ * Precondition: The first token of the source file is loaded into "tok"
+ */
 void program_call()
 {
         if (tok.token_type == PROGRAM) {
                 match(PROGRAM);
                 struct Token id_tok = tok;
                 match(ID);
-                check_add_green_node(tok.lexeme, PG_NAME); // TODO: Error handling
+                check_add_green_node(id_tok.lexeme, PG_NAME);
                 match(PAREN_OPEN);
                 id_list_call();
                 match(PAREN_CLOSE);
@@ -120,7 +145,9 @@ static void program_tail_tail_call()
 static void id_list_call()
 {
         if (tok.token_type == ID) {
+                struct Token id_tok = tok;
                 match(ID);
+                check_add_blue_node(id_tok.lexeme, PG_PARM, 0);
                 id_list_tail_call();
         } else {
                 synerr("'id'", tok.lexeme);
@@ -135,7 +162,9 @@ static void id_list_tail_call()
         switch (tok.token_type) {
         case COMMA:
                 match(COMMA);
+                struct Token id_tok = tok;
                 match(ID);
+                check_add_blue_node(id_tok.lexeme, PG_PARM, 0);
                 id_list_tail_call();
                 break;
         case PAREN_CLOSE:
@@ -187,13 +216,12 @@ static void declarations_tail_call()
         }
 }
 
-static void type_call()
+static struct Decoration type_call()
 {
         switch(tok.token_type) {
         case STANDARD_TYPE:
-                standard_type_call();
-                break;
-        case ARRAY:
+                return standard_type_call();
+        case ARRAY: // TODO: Array type processing
                 match(ARRAY);
                 match(BR_OPEN);
                 match(NUM);
@@ -202,26 +230,35 @@ static void type_call()
                 match(BR_CLOSE);
                 match(OF);
                 standard_type_call();
+                return make_type_decoration(ERR); // FIXME: Compile fix
                 break;
         default:
                 synerr("'integer', 'real' or 'array'", tok.lexeme);
                 enum Derivation dir = type;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return make_type_decoration(ERR);
         }
 }
 
-static void standard_type_call()
+static struct Decoration standard_type_call()
 {
+        int attribute;
         switch(tok.token_type) {
         case STANDARD_TYPE:
+                attribute = tok.attribute.attribute;
                 match(STANDARD_TYPE);
-                break;
+                if (attribute == 1) {
+                        return make_decoration(INT, 4);
+                } else {
+                        return make_decoration(REAL, 8);
+                }
         default:
                 synerr("'integer' or 'real'", tok.lexeme);
                 enum Derivation dir = standard_type;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return make_type_decoration(ERR);
         }
 }
 
@@ -229,6 +266,7 @@ static void sub_declarations_call()
 {
         if (tok.token_type == PROCEDURE) {
                 sub_declaration_call();
+                pop_scope_stack();
                 match(SEMI);
                 sub_declarations_tail_call();
         } else {
@@ -244,6 +282,7 @@ static void sub_declarations_tail_call()
         switch(tok.token_type) {
         case PROCEDURE:
                 sub_declaration_call();
+                pop_scope_stack();
                 match(SEMI);
                 sub_declarations_tail_call();
                 break;
@@ -314,7 +353,9 @@ static void sub_head_call()
 {
         if (tok.token_type == PROCEDURE) {
                 match(PROCEDURE);
+                struct Token id_tok = tok;
                 match(ID);
+                check_add_green_node(id_tok.lexeme, PROC);
                 sub_head_tail_call();
         } else {
                 synerr("'procedure'", tok.lexeme);
@@ -359,9 +400,11 @@ static void arguments_call()
 static void parameter_list_call()
 {
         if (tok.token_type == ID) {
+                struct Token id_tok = tok;
                 match(ID);
                 match(COLON);
-                type_call();
+                struct Decoration type = type_call();
+                check_add_blue_node(id_tok.lexeme, make_param(type.type), 0); // TODO: Calculate offset
                 parameter_list_tail_call();
         } else {
                 synerr("'id'", tok.lexeme);
@@ -534,40 +577,42 @@ static void statement_tail_call()
         }
 }
 
-static enum Type variable_call()
+static struct Decoration variable_call()
 {
         if (tok.token_type == ID) {
                 struct Token id_tok = tok;
                 match(ID);
-                return variable_tail_call(get_type(id_tok.lexeme));
+                enum Type type = get_type(id_tok.lexeme);
+                return variable_tail_call(make_type_decoration(type));
         } else {
                 synerr("'id'", tok.lexeme);
                 enum Derivation dir = variable;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type variable_tail_call(enum Type inherited)
+static struct Decoration variable_tail_call(struct Decoration inherited)
 {
         switch(tok.token_type) {
         case BR_OPEN:
                 match(BR_OPEN);
-                enum Type exp_type = expression_call();
+                struct Decoration exp_dec = expression_call();
+                enum Type exp_type = exp_dec.type;
                 match(BR_CLOSE);
-                if (exp_type == INT && inherited == AINT) {
-                        return INT;
-                } else if (exp_type == INT && inherited == AREAL) {
-                        return REAL_TYPE;
+                if (exp_type == INT && inherited.type == AINT) {
+                        return make_type_decoration(INT);
+                } else if (exp_type == INT && inherited.type == AREAL) {
+                        return make_type_decoration(REAL_TYPE);
                 } else if (exp_type != INT || exp_type != REAL_TYPE) {
                         // TODO: Print semantic error
-                        return ERR;
-                } else if (inherited != AINT || inherited != AREAL) {
+                        return make_type_decoration(ERR);
+                } else if (inherited.type != AINT || inherited.type != AREAL) {
                         // TODO: Print semantic error
-                        return ERR;
+                        return make_type_decoration(ERR);
                 } else {
-                        return ERR;
+                        return make_type_decoration(ERR);
                 }
         case ASSIGN:
                 return inherited;
@@ -576,7 +621,7 @@ static enum Type variable_tail_call(enum Type inherited)
                 enum Derivation dir = variable_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
@@ -651,9 +696,9 @@ static void expression_list_tail_call()
         }
 }
 
-static enum Type expression_call()
+static struct Decoration expression_call()
 {
-        enum Type exp_type;
+        struct Decoration exp_type;
 
         switch(tok.token_type) {
         case ID:
@@ -668,21 +713,21 @@ static enum Type expression_call()
                 enum Derivation dir = expression;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type expression_tail_call(enum Type inherited)
+static struct Decoration expression_tail_call(struct Decoration inherited)
 {
         switch(tok.token_type) {
         case RELOP:
                 match(RELOP);
-                enum Type exp_type = simple_expression_call();
-                if (exp_type == inherited) {
+                struct Decoration exp_type = simple_expression_call();
+                if (exp_type.type == inherited.type) {
                         return exp_type;
                 } else {
                         // TODO: Print semantic error
-                        return ERR;
+                        return make_type_decoration(ERR);
                 }
         case THEN:
         case DO:
@@ -698,13 +743,13 @@ static enum Type expression_tail_call(enum Type inherited)
                 enum Derivation dir = expression_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type simple_expression_call()
+static struct Decoration simple_expression_call()
 {
-        enum Type t_type;
+        struct Decoration t_type;
         switch(tok.token_type) {
         case ID:
         case NUM:
@@ -721,22 +766,22 @@ static enum Type simple_expression_call()
                 enum Derivation dir = simple_expression;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type simple_expression_tail_call(enum Type inherited)
+static struct Decoration simple_expression_tail_call(struct Decoration inherited)
 {
         switch(tok.token_type) {
         case ADDOP:
                 match(ADDOP);
-                enum Type t_type = term_call();
-                enum Type tail_type ;
-                if (t_type == inherited) {
+                struct Decoration t_type = term_call();
+                struct Decoration tail_type;
+                if (t_type.type == inherited.type) {
                         tail_type = t_type;
                 } else {
                         // TODO: Print semantic error
-                        tail_type = ERR;
+                        tail_type = make_type_decoration(ERR);
                 }
                 return simple_expression_tail_call(tail_type);
         case RELOP:
@@ -754,13 +799,13 @@ static enum Type simple_expression_tail_call(enum Type inherited)
                 enum Derivation dir = simple_expression_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type term_call()
+static struct Decoration term_call()
 {
-        enum Type fac_type;
+        struct Decoration fac_type;
         switch(tok.token_type) {
         case ID:
         case NUM:
@@ -773,22 +818,22 @@ static enum Type term_call()
                 enum Derivation dir = term;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type term_tail_call(enum Type inherited)
+static struct Decoration term_tail_call(struct Decoration inherited)
 {
         switch(tok.token_type) {
         case MULOP:
                 match(MULOP);
-                enum Type fac_type = factor_call();
-                enum Type term_in;
-                if (fac_type == inherited) {
+                struct Decoration fac_type = factor_call();
+                struct Decoration term_in;
+                if (fac_type.type == inherited.type) {
                         term_in = fac_type;
                 } else {
                         // TODO: Print semantic error
-                        term_in = ERR;
+                        term_in = make_type_decoration(ERR);
                 }
                 return term_tail_call(term_in);
         case ADDOP:
@@ -807,69 +852,74 @@ static enum Type term_tail_call(enum Type inherited)
                 enum Derivation dir = term_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type factor_call()
+static struct Decoration factor_call()
 {
         struct Token id_tok;
-        enum Type num_type;
+        struct Decoration num_type;
         switch(tok.token_type) {
         case ID:
                 id_tok = tok;
                 match(ID);
                 enum Type lex_type = get_type(id_tok.lexeme);
                 // TODO: Verify id is in scope
-                return factor_tail_call(lex_type);
+                return factor_tail_call(make_type_decoration(lex_type));
         case NUM:
-                num_type = tok.attribute.attribute == 1 ? INT : REAL_TYPE;
+                if (tok.attribute.attribute == 1)
+                        num_type = make_type_decoration(INT);
+                else {
+                        num_type = make_type_decoration(REAL_TYPE);
+                }
                 match(NUM);
                 return num_type;
         case PAREN_OPEN:
                 match(PAREN_OPEN);
-                enum Type exp_type = expression_call();
+                struct Decoration exp_type = expression_call();
                 match(PAREN_CLOSE);
                 return exp_type;
         case NOT:
                 match(NOT);
-                enum Type fac_type = factor_call();
-                if (fac_type == BOOL) {
+                struct Decoration fac_type = factor_call();
+                if (fac_type.type == BOOL) {
                         return fac_type;
-                } else if (fac_type == ERR) {
+                } else if (fac_type.type == ERR) {
                         return fac_type;
                 } else {
                         // TODO: Print semantic error
-                        return ERR;
+                        return make_type_decoration(ERR);
                 }
         default:
                 synerr("'id', 'num' '(', or 'not'", tok.lexeme);
                 enum Derivation dir = factor;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR;
+                return make_type_decoration(ERR);
         }
 }
 
-static enum Type factor_tail_call(enum Type inherited)
+static struct Decoration factor_tail_call(struct Decoration inherited)
 {
         switch(tok.token_type) {
         case BR_OPEN:
                 match(BR_OPEN);
-                enum Type exp_type = expression_call();
+                struct Decoration exp_dec = expression_call();
+                enum Type exp_type = exp_dec.type;
                 match(BR_CLOSE);
-                if (exp_type == INT && inherited == AINT) {
-                        return INT;
-                } else if (exp_type == REAL_TYPE && inherited == AREAL) {
-                        return REAL_TYPE;
+                if (exp_type == INT && inherited.type == AINT) {
+                        return make_type_decoration(INT);
+                } else if (exp_type == REAL_TYPE && inherited.type == AREAL) {
+                        return make_type_decoration(REAL_TYPE);
                 } else if (exp_type != INT || exp_type != ERR) {
                         // TODO: Print semantic error
-                        return ERR;
-                } else if (inherited != AINT || inherited != AREAL) {
+                        return make_type_decoration(ERR);
+                } else if (inherited.type != AINT || inherited.type != AREAL) {
                         // TODO: Print semantic error
-                        return ERR;
+                        return make_type_decoration(ERR);
                 } else {
-                        return ERR;
+                        return make_type_decoration(ERR);
                 }
         case MULOP:
         case ADDOP:
@@ -888,7 +938,7 @@ static enum Type factor_tail_call(enum Type inherited)
                 enum Derivation dir = factor_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
-                return ERR; // NOTE: Not sure about this
+                return make_type_decoration(ERR); // NOTE: Not sure about this
         }
 }
 
