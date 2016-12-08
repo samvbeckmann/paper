@@ -48,6 +48,9 @@ static struct Decoration factor_call();
 static struct Decoration factor_tail_call(struct Decoration inherited);
 static void sign_call();
 
+static int offset;
+static int counter;
+
 static enum Type get_type(char *lexeme)
 {
         // TODO: write function
@@ -100,6 +103,8 @@ void program_call()
 
 static void program_tail_call()
 {
+        offset = 0;
+        counter = 0;
         switch (tok.token_type) {
         case VAR:
                 declarations_call();
@@ -224,10 +229,13 @@ static struct Decoration type_call()
         case ARRAY: // TODO: Array type processing
                 match(ARRAY);
                 match(BR_OPEN);
+                int num1 = atoi(tok.lexeme);
                 match(NUM);
                 match(TWO_DOT);
+                int num2 = atoi(tok.lexeme);
                 match(NUM);
                 match(BR_CLOSE);
+                
                 match(OF);
                 standard_type_call();
                 return make_type_decoration(ERR); // FIXME: Compile fix
@@ -300,6 +308,7 @@ static void sub_declaration_call()
 {
         if (tok.token_type == PROCEDURE) {
                 sub_head_call();
+                enter_num_parms(counter);
                 sub_declaration_tail_call();
         } else {
                 synerr("'procedure'", tok.lexeme);
@@ -352,6 +361,8 @@ static void sub_declaration_tail_tail_call()
 static void sub_head_call()
 {
         if (tok.token_type == PROCEDURE) {
+                offset = 0;
+                counter = 0;
                 match(PROCEDURE);
                 struct Token id_tok = tok;
                 match(ID);
@@ -404,7 +415,9 @@ static void parameter_list_call()
                 match(ID);
                 match(COLON);
                 struct Decoration type = type_call();
-                check_add_blue_node(id_tok.lexeme, make_param(type.type), 0); // TODO: Calculate offset
+                check_add_blue_node(id_tok.lexeme, make_param(type.type), offset);
+                offset = offset + type.width;
+                counter++;
                 parameter_list_tail_call();
         } else {
                 synerr("'id'", tok.lexeme);
@@ -419,9 +432,13 @@ static void parameter_list_tail_call()
         switch(tok.token_type) {
         case SEMI:
                 match(SEMI);
+                struct Token id_tok = tok;
                 match(ID);
                 match(COLON);
-                type_call();
+                struct Decoration type = type_call();
+                check_add_blue_node(id_tok.lexeme, make_param(type.type), offset);
+                offset = offset + type.width;
+                counter++;
                 parameter_list_tail_call();
                 break;
         case PAREN_CLOSE:
