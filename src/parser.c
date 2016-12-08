@@ -186,9 +186,12 @@ static void declarations_call()
 {
         if (tok.token_type == VAR) {
                 match(VAR);
+                struct Token id_tok = tok;
                 match(ID);
                 match(COLON);
-                type_call();
+                struct Decoration type_dec = type_call();
+                check_add_blue_node(id_tok.lexeme, type_dec.type, offset);
+                offset += type_dec.width;
                 match(SEMI);
                 declarations_tail_call();
         } else {
@@ -204,9 +207,12 @@ static void declarations_tail_call()
         switch(tok.token_type) {
         case VAR:
                 match(VAR);
+                struct Token id_tok = tok;
                 match(ID);
                 match(COLON);
-                type_call();
+                struct Decoration type_dec = type_call();
+                check_add_blue_node(id_tok.lexeme, type_dec.type, offset);
+                offset += type_dec.width;
                 match(SEMI);
                 declarations_tail_call();
                 break;
@@ -223,12 +229,12 @@ static void declarations_tail_call()
 
 static struct Decoration type_call()
 {
+        int arrayLen;
+        int ok = 0;
         switch(tok.token_type) {
         case STANDARD_TYPE:
                 return standard_type_call();
         case ARRAY: // REVIEW: Not sure about the logic of array type processing
-                int arrayLen;
-                int ok = 0;
                 match(ARRAY);
                 match(BR_OPEN);
                 struct Token num1 = tok;
@@ -332,7 +338,7 @@ static void sub_declaration_call()
 {
         if (tok.token_type == PROCEDURE) {
                 sub_head_call();
-                enter_num_parms(counter);
+                enter_num_params(counter);
                 sub_declaration_tail_call();
         } else {
                 synerr("'procedure'", tok.lexeme);

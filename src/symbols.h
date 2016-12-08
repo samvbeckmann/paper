@@ -67,6 +67,8 @@ void check_add_blue_node(char lex[], enum Type type, int offset);
 
 void pop_scope_stack();
 
+void enter_num_params(int counter);
+
 /*
  * Checks if a given word is in the reserved word table.
  *

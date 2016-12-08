@@ -95,6 +95,11 @@ void pop_scope_stack()
         scope_stack = scope_stack -> previous;
 }
 
+void enter_num_params(int counter)
+{
+        scope_stack -> symbol -> num_parms = counter;
+}
+
 static int is_green_node(struct Symbol node)
 {
         return node.type == PROC || node.type == PG_NAME;
