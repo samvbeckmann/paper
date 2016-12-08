@@ -69,6 +69,8 @@ void pop_scope_stack();
 
 void enter_num_params(int counter);
 
+enum Type get_type(char lex[]);
+
 /*
  * Checks if a given word is in the reserved word table.
  *

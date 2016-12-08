@@ -43,7 +43,7 @@ struct Symbol * check_add_green_node(char lex[], enum Type type)
         while (current -> previous != NULL) {
                 if (is_green_node(*current)) {
                         if (strcmp(lex, current -> word)) {
-                                printf("SEMERR:   Reuse of scope name '%s'\n", lex);
+                                printf("SEMERR:   Reuse of scope id '%s'\n", lex);
                                 return NULL;
                         }
                 }
@@ -74,7 +74,8 @@ void check_add_blue_node(char lex[], enum Type type, int offset)
         struct Symbol *current = eye;
         while(!is_green_node(*current)) {
                 if (strcmp(lex, current -> word)) {
-                        // TODO: Name conflict here
+                        printf("SEMERR:   Reuse of id '%s'\n", lex);
+                        return;
                 }
         }
 
@@ -103,6 +104,18 @@ void enter_num_params(int counter)
 static int is_green_node(struct Symbol node)
 {
         return node.type == PROC || node.type == PG_NAME;
+}
+
+enum Type get_type(char lex[])
+{
+        struct Symbol *current = eye;
+        while(current -> previous != NULL) {
+                if (strcmp(current -> word, lex))
+                        return current -> type;
+                else
+                        current = current -> previous;
+        }
+        return UNDEC;
 }
 
 /*

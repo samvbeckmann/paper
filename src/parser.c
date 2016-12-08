@@ -51,16 +51,10 @@ static void sign_call();
 static int offset;
 static int counter;
 
-static enum Type get_type(char *lexeme)
-{
-        // TODO: write function
-        return INT;
-}
-
 /**
  * Creates a proper Decoration struct from a given type.
  * @param  in_type Type to assign the type field of the Decoration struct
- * @return         A new Decoration that contains the type of the input
+ * @return A new Decoration that contains the type of the input
  */
 static struct Decoration make_type_decoration(enum Type in_type)
 {
@@ -912,7 +906,6 @@ static struct Decoration factor_call()
                 id_tok = tok;
                 match(ID);
                 enum Type lex_type = get_type(id_tok.lexeme);
-                // TODO: Verify id is in scope
                 return factor_tail_call(make_type_decoration(lex_type));
         case NUM:
                 if (tok.attribute.attribute == 1)
