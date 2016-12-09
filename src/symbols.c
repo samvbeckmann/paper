@@ -115,7 +115,8 @@ enum Type get_type(char lex[])
                 else
                         current = current -> previous;
         }
-        return UNDEC;
+        printf("SEMERR: Use of undeclared identifier: '%s'\n", lex);
+        return ERR;
 }
 
 /*

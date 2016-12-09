@@ -764,10 +764,13 @@ static struct Decoration expression_tail_call(struct Decoration inherited)
         case RELOP:
                 match(RELOP);
                 struct Decoration exp_type = simple_expression_call();
-                if (exp_type.type == inherited.type) {
+                if ((exp_type.type == INT && inherited.type == INT)
+                        || (exp_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
                         return exp_type;
+                } else if (exp_type.type == ERR || inherited.type == ERR) {
+                        return make_type_decoration(ERR);
                 } else {
-                        // TODO: Print semantic error
+                        printf("SEMERR:   Incapatible types for relop operation.\n");
                         return make_type_decoration(ERR);
                 }
         case THEN:
@@ -801,6 +804,10 @@ static struct Decoration simple_expression_call()
         case ADDOP:
                 sign_call();
                 t_type = term_call();
+                if (t_type.type != INT && t_type.type != REAL_TYPE) {
+                        printf("SEMERR:   Attempt to add sign to unsigned type.\n");
+                        t_type = make_type_decoration(ERR);
+                }
                 return simple_expression_tail_call(t_type);
         default:
                 synerr("'id', 'num', '(' 'not', '+', or '-'", tok.lexeme);
@@ -813,18 +820,37 @@ static struct Decoration simple_expression_call()
 
 static struct Decoration simple_expression_tail_call(struct Decoration inherited)
 {
+        int op;
         switch(tok.token_type) {
         case ADDOP:
+                op = tok.attribute.attribute;
                 match(ADDOP);
                 struct Decoration t_type = term_call();
-                struct Decoration tail_type;
-                if (t_type.type == inherited.type) {
-                        tail_type = t_type;
-                } else {
-                        // TODO: Print semantic error
-                        tail_type = make_type_decoration(ERR);
+                switch (op) {
+                case ADD:
+                case SUB:
+                        if ((t_type.type == INT && inherited.type == INT)
+                                || (t_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
+                                return t_type;
+                        } else if (t_type.type == ERR || inherited.type == ERR) {
+                                return make_type_decoration(ERR);
+                        } else {
+                                printf("SEMERR:  Incompatible types for addop operation.\n");
+                                return make_type_decoration(ERR);
+                        }
+                case OR:
+                        if (t_type.type == BOOL && inherited.type == BOOL) {
+                                return t_type;
+                        } else if (t_type.type == ERR || inherited.type == ERR) {
+                                return make_type_decoration(ERR);
+                        } else {
+                                printf("SEMERR:  Incompatible types for or operation.\n");
+                                return make_type_decoration(ERR);
+                        }
+                default:
+                        printf("SEMERR:   Unrecognized addop.\n");
+                        return make_type_decoration(ERR);
                 }
-                return simple_expression_tail_call(tail_type);
         case RELOP:
         case THEN:
         case DO:
@@ -865,18 +891,56 @@ static struct Decoration term_call()
 
 static struct Decoration term_tail_call(struct Decoration inherited)
 {
+        int op;
         switch(tok.token_type) {
         case MULOP:
+                op = tok.attribute.attribute;
                 match(MULOP);
                 struct Decoration fac_type = factor_call();
-                struct Decoration term_in;
-                if (fac_type.type == inherited.type) {
-                        term_in = fac_type;
-                } else {
-                        // TODO: Print semantic error
-                        term_in = make_type_decoration(ERR);
+                switch (op) {
+                case MULT:
+                        if ((fac_type.type == INT && inherited.type == INT)
+                                || (fac_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
+                                return fac_type;
+                        } else if (fac_type.type == ERR || inherited.type == ERR) {
+                                return make_type_decoration(ERR);
+                        } else {
+                                printf("SEM ERR:   Incompatible types for mult operation.\n");
+                                return make_type_decoration(ERR);
+                        }
+                case DIVIDE:
+                case DIV:
+                        if ((fac_type.type == INT && inherited.type == INT)
+                                || (fac_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
+                                return fac_type;
+                        } else if (fac_type.type == ERR || inherited.type == ERR) {
+                                return make_type_decoration(ERR);
+                        } else {
+                                printf("SEM ERR:   Incompatible types for div operation.\n");
+                                return make_type_decoration(ERR);
+                        }
+                case MOD:
+                        if ((fac_type.type == INT && inherited.type == INT)) {
+                                return fac_type;
+                        } else if (fac_type.type == ERR || inherited.type == ERR) {
+                                return make_type_decoration(ERR);
+                        } else {
+                                printf("SEM ERR:   Incompatible types for mod operation.\n");
+                                return make_type_decoration(ERR);
+                        }
+                case AND:
+                        if ((fac_type.type == BOOL && inherited.type == BOOL)) {
+                                return fac_type;
+                        } else if (fac_type.type == ERR || inherited.type == ERR) {
+                                return make_type_decoration(ERR);
+                        } else {
+                                printf("SEM ERR:   Incompatible types for and operation.\n");
+                                return make_type_decoration(ERR);
+                        }
+                default:
+                        printf("SEMERR: Unrecognized mulop.\n");
+                        return make_type_decoration(ERR);
                 }
-                return term_tail_call(term_in);
         case ADDOP:
         case RELOP:
         case THEN:
@@ -928,7 +992,7 @@ static struct Decoration factor_call()
                 } else if (fac_type.type == ERR) {
                         return fac_type;
                 } else {
-                        // TODO: Print semantic error
+                        printf("SEMERR:   'not' used with non-boolean expression.\n");
                         return make_type_decoration(ERR);
                 }
         default:
@@ -950,13 +1014,15 @@ static struct Decoration factor_tail_call(struct Decoration inherited)
                 match(BR_CLOSE);
                 if (exp_type == INT && inherited.type == AINT) {
                         return make_type_decoration(INT);
-                } else if (exp_type == REAL_TYPE && inherited.type == AREAL) {
+                } else if (exp_type == INT && inherited.type == AREAL) {
                         return make_type_decoration(REAL_TYPE);
-                } else if (exp_type != INT || exp_type != ERR) {
-                        // TODO: Print semantic error
+                } else if (inherited.type != AINT
+                                && inherited.type != AREAL
+                                && inherited.type != ERR) {
+                        printf("SEMERR:   Array access of non-array object\n");
                         return make_type_decoration(ERR);
-                } else if (inherited.type != AINT || inherited.type != AREAL) {
-                        // TODO: Print semantic error
+                } else if (exp_type != INT && exp_type != ERR) {
+                        printf("SEMERR:   Array reference is not an integer.\n");
                         return make_type_decoration(ERR);
                 } else {
                         return make_type_decoration(ERR);

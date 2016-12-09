@@ -12,7 +12,6 @@ enum Type
         PG_PARM,
         PROC,
         OK,
-        UNDEC,
         ERR,
         PP_INT,
         PP_REAL,
