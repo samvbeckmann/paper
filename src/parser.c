@@ -36,8 +36,8 @@ static struct Decoration variable_call();
 static struct Decoration variable_tail_call(struct Decoration inherited);
 static void procedure_statement_call();
 static void procedure_statement_tail_call();
-static void expression_list_call();
-static void expression_list_tail_call();
+static int expression_list_call(int num_parms, struct Symbol *param);
+static int expression_list_tail_call(int num_parms, struct Symbol *param);
 static struct Decoration expression_call();
 static struct Decoration expression_tail_call(struct Decoration inherited);
 static struct Decoration simple_expression_call();
@@ -674,8 +674,15 @@ static void procedure_statement_call()
 {
         if (tok.token_type == CALL) {
                 match(CALL);
+                struct Token id_tok = tok;
                 match(ID);
-                procedure_statement_tail_call();
+                enum Type id_type = get_type(id_tok.lexeme);
+                if (id_type != PROC && id_type != ERR) {
+                        printf("SEM ERR:   '%s' is not a procedure.\n", id_tok.lexeme);
+                        procedure_statement_tail_call(NULL);
+                } else {
+                        procedure_statement_tail_call(get_proc_pointer(id_tok.lexeme));
+                }
         } else {
                 synerr("'call'", tok.lexeme);
                 enum Derivation dir = procedure_statement;
@@ -684,17 +691,23 @@ static void procedure_statement_call()
         }
 }
 
-static void procedure_statement_tail_call()
+static void procedure_statement_tail_call(struct Symbol *proc)
 {
         switch(tok.token_type) {
         case PAREN_OPEN:
                 match(PAREN_OPEN);
-                expression_list_call();
+                int net_params = expression_list_call(proc -> num_parms, proc -> content);
+                if (net_params != 0) {
+                        printf("SEM ERR:   Incorrect number of parameters in procedure call.\n");
+                }
                 match(PAREN_CLOSE);
                 break;
         case SEMI:
         case ELSE:
         case END:
+                if (proc -> num_parms != 0) {
+                        printf("SEM ERR:   Incorrect number of parameters in procedure call.\n");
+                }
                 break;
         default:
                 synerr("'(', ';', 'else', or 'end'", tok.lexeme);
@@ -704,40 +717,51 @@ static void procedure_statement_tail_call()
         }
 }
 
-static void expression_list_call()
+static int expression_list_call(int num_parms, struct Symbol *param)
 {
+        struct Decoration exp_dec;
         switch(tok.token_type) {
         case ID:
         case NUM:
         case PAREN_OPEN:
         case NOT:
         case ADDOP:
-                expression_call();
-                expression_list_tail_call();
-                break;
+                exp_dec = expression_call();
+                if (num_parms <= 0) {
+                        return num_parms - 1;
+                } else if (exp_dec.type != param -> type) {
+                        printf("SEM ERR:   Incorrect type for parameter.\n");
+                }
+                return expression_list_tail_call(num_parms - 1, param -> next);
         default:
                 synerr("'id', 'num', '(', 'not', '+', or '-'", tok.lexeme);
                 enum Derivation dir = expression_list;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return 0;
         }
 }
 
-static void expression_list_tail_call()
+static int expression_list_tail_call(int num_parms, struct Symbol *param)
 {
         switch(tok.token_type) {
         case COMMA:
                 match(COMMA);
-                expression_call();
-                expression_list_tail_call();
-                break;
+                struct Decoration exp_dec = expression_call();
+                if (num_parms <= 0) {
+                        return num_parms - 1;
+                } else if (exp_dec.type != param -> type) {
+                        printf("SEM ERR:   Incorrect type for parameter.\n");
+                }
+                return expression_list_tail_call(num_parms - 1, param -> next);
         case PAREN_CLOSE:
-                break;
+                return num_parms;
         default:
                 synerr("',' or ')'", tok.lexeme);
                 enum Derivation dir = expression_list_tail;
                 while (!synch(dir, tok.token_type))
                         tok = get_token();
+                return 0;
         }
 }
 

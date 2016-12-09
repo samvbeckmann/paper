@@ -71,6 +71,8 @@ void enter_num_params(int counter);
 
 enum Type get_type(char lex[]);
 
+struct Symbol * get_proc_pointer(char lexeme[]);
+
 /*
  * Checks if a given word is in the reserved word table.
  *

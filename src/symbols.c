@@ -119,6 +119,18 @@ enum Type get_type(char lex[])
         return ERR;
 }
 
+struct Symbol * get_proc_pointer(char lexeme[])
+{
+        struct SymbolStack *current = scope_stack;
+
+        while (current -> previous != NULL)
+                if (strcmp(current -> symbol -> word, lexeme))
+                        return current -> symbol;
+
+        printf("SEM ERR:   Did not find pointer in stack.\n");
+        return NULL;
+}
+
 /*
  * Adds a reserved word to the reserved word table.
  *
