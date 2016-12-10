@@ -46,6 +46,10 @@ struct SymbolStack {
  */
 extern struct Symbol *global_sym_table;
 
+extern struct Symbol *forward_eye;
+
+extern struct Symbol *eye;
+
 /*
  * Rerved word table. Pointer fo first item in the linked list.
  */

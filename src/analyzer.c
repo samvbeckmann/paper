@@ -46,6 +46,9 @@ static void compile_file(char src[])
         global_sym_table = malloc(sizeof(struct Symbol));
         global_sym_table -> next = NULL;
 
+        forward_eye = malloc(sizeof(struct Symbol));
+        eye = NULL;
+
         FILE *rfp;
 
         char noext[40];

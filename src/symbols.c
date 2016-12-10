@@ -1,9 +1,10 @@
 #include "symbols.h"
+#include "analyzer.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-struct Symbol *global_sym_table;
+struct Symbol *global_sym_table; // REVIEW: Remove variable
 struct Reserved_Word *reserved_word_table;
 struct Symbol *eye;
 struct Symbol *forward_eye;
@@ -40,14 +41,18 @@ struct Symbol * add_symbol(char word[])
 struct Symbol * check_add_green_node(char lex[], enum Type type)
 {
         struct Symbol *current = eye;
-        while (current -> previous != NULL) {
-                if (is_green_node(*current)) {
-                        if (strcmp(lex, current -> word)) {
-                                printf("SEMERR:   Reuse of scope id '%s'\n", lex);
-                                return NULL;
+        if (current != NULL) {
+                while (current -> previous != NULL) {
+                        if (is_green_node(*current)) {
+                                if (strcmp(lex, current -> word) == 0) {
+                                        fprintf(lfp, "SEMERR:   Reuse of scope id '%s'\n", lex);
+                                        return NULL;
+                                }
                         }
+                        current = current -> previous;
                 }
         }
+
 
         // No name conflicts
         strcpy(forward_eye -> word, lex);
@@ -73,9 +78,11 @@ void check_add_blue_node(char lex[], enum Type type, int offset)
 {
         struct Symbol *current = eye;
         while(!is_green_node(*current)) {
-                if (strcmp(lex, current -> word)) {
-                        printf("SEMERR:   Reuse of id '%s'\n", lex);
+                if (strcmp(lex, current -> word) == 0) {
+                        fprintf(lfp, "SEMERR:   Reuse of id '%s'\n", lex);
                         return;
+                } else {
+                        current = current -> previous;
                 }
         }
 
@@ -110,12 +117,12 @@ enum Type get_type(char lex[])
 {
         struct Symbol *current = eye;
         while(current -> previous != NULL) {
-                if (strcmp(current -> word, lex))
+                if (strcmp(current -> word, lex) == 0)
                         return current -> type;
                 else
                         current = current -> previous;
         }
-        printf("SEMERR: Use of undeclared identifier: '%s'\n", lex);
+        fprintf(lfp, "SEMERR:   Use of undeclared identifier: '%s'\n", lex);
         return ERR;
 }
 
@@ -124,10 +131,10 @@ struct Symbol * get_proc_pointer(char lexeme[])
         struct SymbolStack *current = scope_stack;
 
         while (current -> previous != NULL)
-                if (strcmp(current -> symbol -> word, lexeme))
+                if (strcmp(current -> symbol -> word, lexeme) == 0)
                         return current -> symbol;
 
-        printf("SEM ERR:   Did not find pointer in stack.\n");
+        fprintf(lfp, "SEMERR:   Did not find pointer in stack.\n");
         return NULL;
 }
 

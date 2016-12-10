@@ -239,15 +239,15 @@ static struct Decoration type_call()
                 match(BR_CLOSE);
                 if (num1.token_type == NUM && num2.token_type == NUM) {
                         if (num1.token_type == REAL || num2.token_type == REAL) {
-                                printf("SEM ERR:   Atempt to use real number for array length.\n");
+                                fprintf(lfp, "SEMERR:   Atempt to use real number for array length.\n");
                         } else if (num1.token_type == INTEGER && num2.token_type == INTEGER) {
                                 arrayLen = atoi(num2.lexeme) - atoi(num1.lexeme) + 1;
                                 ok = 1;
                         } else {
-                                printf("SEM ERR:   Unrecognized input for array length.\n");
+                                fprintf(lfp, "SEMERR:   Unrecognized input for array length.\n");
                         }
                 } else if (num1.token_type != LEXERR && num2.token_type != LEXERR) {
-                        printf("SEM ERR:   Attempt to use non-number for array length.\n");
+                        fprintf(lfp, "SEMERR:   Attempt to use non-number for array length.\n");
                 }
                 match(OF);
                 struct Decoration std_type = standard_type_call();
@@ -258,7 +258,7 @@ static struct Decoration type_call()
                         else if (std_type.type == REAL)
                                 return make_decoration(AREAL, width);
                         else {
-                                printf("SEM ERR:   Unexpected type for array.\n");
+                                fprintf(lfp, "SEMERR:   Unexpected type for array.\n");
                                 return make_type_decoration(ERR);
                         }
                 } else {
@@ -584,7 +584,7 @@ static void statement_call()
                 match(IF);
                 exp_dec = expression_call();
                 if (exp_dec.type != BOOL && exp_dec.type != ERR) {
-                        printf("SEM ERR:   Attempt to use non-boolean expression in if statement.\n");
+                        fprintf(lfp, "SEMERR:   Attempt to use non-boolean expression in if statement.\n");
                 }
                 match(THEN);
                 statement_call();
@@ -594,7 +594,7 @@ static void statement_call()
                 match(WHILE);
                 exp_dec = expression_call();
                 if (exp_dec.type != BOOL && exp_dec.type != ERR) {
-                        printf("SEM ERR:   Attempt to use non-boolean expression in while loop.\n");
+                        fprintf(lfp, "SEMERR:   Attempt to use non-boolean expression in while loop.\n");
                 }
                 match(DO);
                 statement_call();
@@ -656,7 +656,7 @@ static struct Decoration variable_tail_call(struct Decoration inherited)
                 } else if (exp_dec.type == ERR || inherited.type == ERR) {
                         return make_type_decoration(ERR);
                 } else {
-                        printf("SEM ERR:   Incorrect array access.\n");
+                        fprintf(lfp, "SEMERR:   Incorrect array access.\n");
                         return make_type_decoration(ERR);
                 }
         case ASSIGN:
@@ -677,11 +677,13 @@ static void procedure_statement_call()
                 struct Token id_tok = tok;
                 match(ID);
                 enum Type id_type = get_type(id_tok.lexeme);
-                if (id_type != PROC && id_type != ERR) {
-                        printf("SEM ERR:   '%s' is not a procedure.\n", id_tok.lexeme);
+                if (id_type == PROC) {
+                        procedure_statement_tail_call(get_proc_pointer(id_tok.lexeme));
+                } else if (id_type == ERR) {
                         procedure_statement_tail_call(NULL);
                 } else {
-                        procedure_statement_tail_call(get_proc_pointer(id_tok.lexeme));
+                        fprintf(lfp, "SEMERR:   '%s' is not a procedure.\n", id_tok.lexeme);
+                        procedure_statement_tail_call(NULL);
                 }
         } else {
                 synerr("'call'", tok.lexeme);
@@ -696,17 +698,23 @@ static void procedure_statement_tail_call(struct Symbol *proc)
         switch(tok.token_type) {
         case PAREN_OPEN:
                 match(PAREN_OPEN);
-                int net_params = expression_list_call(proc -> num_parms, proc -> content);
-                if (net_params != 0) {
-                        printf("SEM ERR:   Incorrect number of parameters in procedure call.\n");
+                if (proc == NULL) {
+                        expression_list_call(0, NULL);
+                } else {
+                        int net_params = expression_list_call(proc -> num_parms, proc -> content);
+                        if (net_params != 0) {
+                                fprintf(lfp, "SEMERR:   Incorrect number of parameters in procedure call.\n");
+                        }
                 }
                 match(PAREN_CLOSE);
                 break;
         case SEMI:
         case ELSE:
         case END:
-                if (proc -> num_parms != 0) {
-                        printf("SEM ERR:   Incorrect number of parameters in procedure call.\n");
+                if (proc == NULL) {
+                        return;
+                } else if (proc -> num_parms != 0) {
+                        fprintf(lfp, "SEMERR:   Incorrect number of parameters in procedure call.\n");
                 }
                 break;
         default:
@@ -727,10 +735,10 @@ static int expression_list_call(int num_parms, struct Symbol *param)
         case NOT:
         case ADDOP:
                 exp_dec = expression_call();
-                if (num_parms <= 0) {
-                        return num_parms - 1;
+                if (param == NULL || num_parms <= 0) {
+                        return expression_list_tail_call(num_parms - 1, param);
                 } else if (exp_dec.type != param -> type) {
-                        printf("SEM ERR:   Incorrect type for parameter.\n");
+                        fprintf(lfp, "SEMERR:   Incorrect type for parameter.\n");
                 }
                 return expression_list_tail_call(num_parms - 1, param -> next);
         default:
@@ -748,10 +756,10 @@ static int expression_list_tail_call(int num_parms, struct Symbol *param)
         case COMMA:
                 match(COMMA);
                 struct Decoration exp_dec = expression_call();
-                if (num_parms <= 0) {
-                        return num_parms - 1;
+                if (param == NULL || num_parms <= 0) {
+                        return expression_list_tail_call(num_parms - 1, param);
                 } else if (exp_dec.type != param -> type) {
-                        printf("SEM ERR:   Incorrect type for parameter.\n");
+                        fprintf(lfp, "SEMERR:   Incorrect type for parameter.\n");
                 }
                 return expression_list_tail_call(num_parms - 1, param -> next);
         case PAREN_CLOSE:
@@ -798,7 +806,7 @@ static struct Decoration expression_tail_call(struct Decoration inherited)
                 } else if (exp_type.type == ERR || inherited.type == ERR) {
                         return make_type_decoration(ERR);
                 } else {
-                        printf("SEM ERR:   Incapatible types for relop operation.\n");
+                        fprintf(lfp, "SEMERR:   Incompatible types for relop operation.\n");
                         return make_type_decoration(ERR);
                 }
         case THEN:
@@ -833,7 +841,7 @@ static struct Decoration simple_expression_call()
                 sign_call();
                 t_type = term_call();
                 if (t_type.type != INT && t_type.type != REAL_TYPE) {
-                        printf("SEM ERR:   Attempt to add sign to unsigned type.\n");
+                        fprintf(lfp, "SEMERR:   Attempt to add sign to unsigned type.\n");
                         t_type = make_type_decoration(ERR);
                 }
                 return simple_expression_tail_call(t_type);
@@ -863,7 +871,7 @@ static struct Decoration simple_expression_tail_call(struct Decoration inherited
                         } else if (t_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
-                                printf("SEM ERR:  Incompatible types for addop operation.\n");
+                                fprintf(lfp, "SEMERR:   Incompatible types for addop operation.\n");
                                 return make_type_decoration(ERR);
                         }
                 case OR:
@@ -872,11 +880,11 @@ static struct Decoration simple_expression_tail_call(struct Decoration inherited
                         } else if (t_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
-                                printf("SEM ERR:  Incompatible types for or operation.\n");
+                                fprintf(lfp, "SEMERR:  Incompatible types for or operation.\n");
                                 return make_type_decoration(ERR);
                         }
                 default:
-                        printf("SEM ERR:   Unrecognized addop.\n");
+                        fprintf(lfp, "SEMERR:   Unrecognized addop.\n");
                         return make_type_decoration(ERR);
                 }
         case RELOP:
@@ -933,7 +941,7 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
-                                printf("SEM ERR:   Incompatible types for mult operation.\n");
+                                fprintf(lfp, "SEMERR:   Incompatible types for mult operation.\n");
                                 return make_type_decoration(ERR);
                         }
                 case DIVIDE:
@@ -944,7 +952,7 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
-                                printf("SEM ERR:   Incompatible types for div operation.\n");
+                                fprintf(lfp, "SEMERR:   Incompatible types for div operation.\n");
                                 return make_type_decoration(ERR);
                         }
                 case MOD:
@@ -953,7 +961,7 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
-                                printf("SEM ERR:   Incompatible types for mod operation.\n");
+                                fprintf(lfp, "SEMERR:   Incompatible types for mod operation.\n");
                                 return make_type_decoration(ERR);
                         }
                 case AND:
@@ -962,11 +970,11 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
-                                printf("SEM ERR:   Incompatible types for and operation.\n");
+                                fprintf(lfp, "SEMERR:   Incompatible types for and operation.\n");
                                 return make_type_decoration(ERR);
                         }
                 default:
-                        printf("SEM ERR: Unrecognized mulop.\n");
+                        fprintf(lfp, "SEMERR: Unrecognized mulop.\n");
                         return make_type_decoration(ERR);
                 }
         case ADDOP:
@@ -1020,7 +1028,7 @@ static struct Decoration factor_call()
                 } else if (fac_type.type == ERR) {
                         return fac_type;
                 } else {
-                        printf("SEM ERR:   'not' used with non-boolean expression.\n");
+                        fprintf(lfp, "SEMERR:   'not' used with non-boolean expression.\n");
                         return make_type_decoration(ERR);
                 }
         default:
@@ -1047,10 +1055,10 @@ static struct Decoration factor_tail_call(struct Decoration inherited)
                 } else if (inherited.type != AINT
                                 && inherited.type != AREAL
                                 && inherited.type != ERR) {
-                        printf("SEM ERR:   Array access of non-array object\n");
+                        fprintf(lfp, "SEMERR:   Array access of non-array object\n");
                         return make_type_decoration(ERR);
                 } else if (exp_type != INT && exp_type != ERR) {
-                        printf("SEM ERR:   Array reference is not an integer.\n");
+                        fprintf(lfp, "SEMERR:   Array reference is not an integer.\n");
                         return make_type_decoration(ERR);
                 } else {
                         return make_type_decoration(ERR);

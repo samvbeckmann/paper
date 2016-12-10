@@ -2,8 +2,10 @@
 #define ANALYZER_H
 
 #include "machines.h"
+#include <stdio.h>
 
 extern struct Token tok;
+extern FILE *lfp;
 
 /*
  * Compiles the given Pascal file.
