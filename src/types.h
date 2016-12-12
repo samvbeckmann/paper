@@ -11,7 +11,6 @@ enum Type
         PG_NAME,
         PG_PARM,
         PROC,
-        OK,
         ERR,
         PP_INT,
         PP_REAL,
@@ -20,6 +19,8 @@ enum Type
 };
 
 enum Type make_param(enum Type input);
+
+const char* get_type_name(enum Type type);
 
 int num_type_agreement(enum Type first, enum Type second);
 

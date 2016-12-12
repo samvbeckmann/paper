@@ -11,6 +11,9 @@ struct Symbol *forward_eye;
 static struct SymbolStack *scope_stack;
 
 static int is_green_node(struct Symbol node);
+static void print_symbol_line(FILE *out, int num_levels, struct Symbol *current);
+static void print_bars(FILE *out, int num);
+static void print_temp_line(FILE *out, int num);
 
 /**
  * REVIEW: Remove this function.
@@ -139,6 +142,48 @@ struct Symbol * get_proc_pointer(char lexeme[])
 
         fprintf(lfp, "SEMERR:   Did not find pointer in stack.\n");
         return NULL;
+}
+
+void print_symbol_table(FILE *out)
+{
+        struct Symbol *current = eye;
+        while(current -> previous != NULL) {
+                current = current -> previous;
+        }
+        print_symbol_line(out, 0, current);
+}
+
+static void print_symbol_line(FILE *out, int num_levels, struct Symbol *current)
+{
+
+        if (is_green_node(*current)) {
+                print_bars(out, num_levels);
+                fprintf(out, "* SCOPE: {id: %s, type: %s, num-params: %d}\n", current -> word, get_type_name(current -> type), current -> num_parms);
+                print_temp_line(out, num_levels + 1);
+                print_symbol_line(out, num_levels + 1, current -> content);
+                print_symbol_line(out, num_levels, current -> next);
+        } else if (current -> next != NULL) {
+                print_bars(out, num_levels);
+                fprintf(out, "* VAR: {id: %s, type: %s, offset: %d}\n", current -> word, get_type_name(current -> type), current -> offset);
+                print_symbol_line(out, num_levels, current -> next);
+        }
+}
+
+static void print_bars(FILE *out, int num)
+{
+        for (int i = 0; i < num; i++)
+                fprintf(out, "| ");
+}
+
+static void print_temp_line(FILE *out, int num)
+{
+        if (num > 0)
+                fprintf(out, "|");
+
+        for (int i = 1; i < num; i++)
+                fprintf(out, " |");
+
+        fprintf(out, "\\\n");
 }
 
 /*

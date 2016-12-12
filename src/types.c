@@ -23,6 +23,26 @@ enum Type make_param(enum Type input)
         }
 }
 
+const char* get_type_name(enum Type type)
+{
+   switch (type)
+   {
+      case INT: return "INT";
+      case REAL_TYPE: return "REAL";
+      case AINT: return "AINT";
+      case AREAL: return "AREAL";
+      case BOOL: return "BOOL";
+      case PG_NAME: return "PGM_NAME";
+      case PG_PARM: return "PGM_PARAM";
+      case PROC: return "PROCEDURE";
+      case PP_INT: return "PP_INT";
+      case PP_REAL: return "PP_REAL";
+      case PP_AINT: return "PP_AINT";
+      case PP_AREAL: return "PP_AREAL";
+      default: return "UNKNOWN TYPE";
+   }
+}
+
 int num_type_agreement(enum Type first, enum Type second)
 {
         return integer_agreement(first, second) || real_agreement(first, second);

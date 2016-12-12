@@ -13,6 +13,7 @@ char *forward;
 FILE *sfp;
 FILE *lfp;
 FILE *tfp;
+FILE *stp;
 struct Token tok;
 
 int main(int argc, char *argv[])
@@ -63,10 +64,16 @@ static void compile_file(char src[])
         strcpy(tkname, noext);
         strcat(tkname, "tokens");
 
+        char stname[50];
+        strcpy(stname, noext);
+        strcat(stname, "symbols");
+
         sfp = fopen(src, "r");
         lfp = fopen(lfname, "w");
         tfp = fopen(tkname, "w");
         rfp = fopen("RESERVED_WORDS", "r");
+        stp = fopen(stname, "w");
+
 
         if (sfp == NULL) {
                 fprintf(stderr, "Source file \"%s\" does not exist.\n", src);
@@ -84,10 +91,13 @@ static void compile_file(char src[])
 
         parse();
 
+        print_symbol_table(stp);
+
         fclose(sfp);
         fclose(lfp);
         fclose(tfp);
         fclose(rfp);
+        fclose(stp);
 }
 
 static char* get_next_line()
