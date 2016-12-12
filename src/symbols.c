@@ -128,11 +128,14 @@ enum Type get_type(char lex[])
 
 struct Symbol * get_proc_pointer(char lexeme[])
 {
-        struct SymbolStack *current = scope_stack;
 
-        while (current -> previous != NULL)
-                if (strcmp(current -> symbol -> word, lexeme) == 0)
-                        return current -> symbol;
+        struct Symbol *current = eye;
+
+        while (current -> previous != NULL) {
+                if (is_green_node(*current) && strcmp(current -> word, lexeme) == 0)
+                        return current;
+                current = current -> previous;
+        }
 
         fprintf(lfp, "SEMERR:   Did not find pointer in stack.\n");
         return NULL;

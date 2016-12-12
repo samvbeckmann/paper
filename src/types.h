@@ -21,4 +21,12 @@ enum Type
 
 enum Type make_param(enum Type input);
 
+int num_type_agreement(enum Type first, enum Type second);
+
+int integer_agreement(enum Type first, enum Type second);
+
+int real_agreement(enum Type first, enum Type second);
+
+int verify_param(enum Type input, enum Type expected);
+
 #endif

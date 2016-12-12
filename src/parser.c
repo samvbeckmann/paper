@@ -238,9 +238,9 @@ static struct Decoration type_call()
                 match(NUM);
                 match(BR_CLOSE);
                 if (num1.token_type == NUM && num2.token_type == NUM) {
-                        if (num1.token_type == REAL || num2.token_type == REAL) {
+                        if (num1.attribute.attribute == REAL || num2.attribute.attribute == REAL) {
                                 fprintf(lfp, "SEMERR:   Atempt to use real number for array length.\n");
-                        } else if (num1.token_type == INTEGER && num2.token_type == INTEGER) {
+                        } else if (num1.attribute.attribute == INTEGER && num2.attribute.attribute == INTEGER) {
                                 arrayLen = atoi(num2.lexeme) - atoi(num1.lexeme) + 1;
                                 ok = 1;
                         } else {
@@ -255,7 +255,7 @@ static struct Decoration type_call()
                         int width = arrayLen * std_type.width;
                         if (std_type.type == INT)
                                 return make_decoration(AINT, width);
-                        else if (std_type.type == REAL)
+                        else if (std_type.type == REAL_TYPE)
                                 return make_decoration(AREAL, width);
                         else {
                                 fprintf(lfp, "SEMERR:   Unexpected type for array.\n");
@@ -283,7 +283,7 @@ static struct Decoration standard_type_call()
                 if (attribute == 1) {
                         return make_decoration(INT, 4);
                 } else {
-                        return make_decoration(REAL, 8);
+                        return make_decoration(REAL_TYPE, 8);
                 }
         default:
                 synerr("'integer' or 'real'", tok.lexeme);
@@ -649,9 +649,9 @@ static struct Decoration variable_tail_call(struct Decoration inherited)
                 struct Decoration exp_dec = expression_call();
                 enum Type exp_type = exp_dec.type;
                 match(BR_CLOSE);
-                if (exp_type == INT && inherited.type == AINT) {
+                if (exp_type == INT && (inherited.type == AINT || inherited.type == PP_AINT)) {
                         return make_type_decoration(INT);
-                } else if (exp_type == INT && inherited.type == AREAL) {
+                } else if (exp_type == INT && (inherited.type == AREAL || inherited.type == PP_AREAL)) {
                         return make_type_decoration(REAL_TYPE);
                 } else if (exp_dec.type == ERR || inherited.type == ERR) {
                         return make_type_decoration(ERR);
@@ -737,7 +737,7 @@ static int expression_list_call(int num_parms, struct Symbol *param)
                 exp_dec = expression_call();
                 if (param == NULL || num_parms <= 0) {
                         return expression_list_tail_call(num_parms - 1, param);
-                } else if (exp_dec.type != param -> type) {
+                } else if (!verify_param(exp_dec.type, param -> type)) {
                         fprintf(lfp, "SEMERR:   Incorrect type for parameter.\n");
                 }
                 return expression_list_tail_call(num_parms - 1, param -> next);
@@ -758,7 +758,7 @@ static int expression_list_tail_call(int num_parms, struct Symbol *param)
                 struct Decoration exp_dec = expression_call();
                 if (param == NULL || num_parms <= 0) {
                         return expression_list_tail_call(num_parms - 1, param);
-                } else if (exp_dec.type != param -> type) {
+                } else if (!verify_param(exp_dec.type, param -> type)) {
                         fprintf(lfp, "SEMERR:   Incorrect type for parameter.\n");
                 }
                 return expression_list_tail_call(num_parms - 1, param -> next);
@@ -800,8 +800,7 @@ static struct Decoration expression_tail_call(struct Decoration inherited)
         case RELOP:
                 match(RELOP);
                 struct Decoration exp_type = simple_expression_call();
-                if ((exp_type.type == INT && inherited.type == INT)
-                        || (exp_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
+                if (num_type_agreement(exp_type.type, inherited.type)) {
                         return make_type_decoration(BOOL);
                 } else if (exp_type.type == ERR || inherited.type == ERR) {
                         return make_type_decoration(ERR);
@@ -865,9 +864,10 @@ static struct Decoration simple_expression_tail_call(struct Decoration inherited
                 switch (op) {
                 case ADD:
                 case SUB:
-                        if ((t_type.type == INT && inherited.type == INT)
-                                || (t_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
-                                return t_type;
+                        if (integer_agreement(t_type.type, inherited.type)) {
+                                return make_decoration(INT, 4);
+                        } else if (real_agreement(t_type.type, inherited.type)) {
+                                return make_decoration(REAL, 8);
                         } else if (t_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
@@ -935,9 +935,10 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                 struct Decoration fac_type = factor_call();
                 switch (op) {
                 case MULT:
-                        if ((fac_type.type == INT && inherited.type == INT)
-                                || (fac_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
-                                return fac_type;
+                        if (integer_agreement(fac_type.type, inherited.type)) {
+                                return make_decoration(INT, 4);
+                        } else if (real_agreement(fac_type.type, inherited.type)) {
+                                return make_decoration(REAL, 8);
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
@@ -946,9 +947,10 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                         }
                 case DIVIDE:
                 case DIV:
-                        if ((fac_type.type == INT && inherited.type == INT)
-                                || (fac_type.type == REAL_TYPE && inherited.type == REAL_TYPE)) {
-                                return fac_type;
+                        if (integer_agreement(fac_type.type, inherited.type)) {
+                                return make_decoration(INT, 4);
+                        } else if (real_agreement(fac_type.type, inherited.type)) {
+                                return make_decoration(REAL, 8);
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
                         } else {
@@ -956,7 +958,7 @@ static struct Decoration term_tail_call(struct Decoration inherited)
                                 return make_type_decoration(ERR);
                         }
                 case MOD:
-                        if ((fac_type.type == INT && inherited.type == INT)) {
+                        if (integer_agreement(fac_type.type, inherited.type)) {
                                 return fac_type;
                         } else if (fac_type.type == ERR || inherited.type == ERR) {
                                 return make_type_decoration(ERR);
