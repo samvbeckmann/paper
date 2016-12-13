@@ -150,23 +150,15 @@ struct Token get_token()
 
         forward = token.forward;
 
-        if (token.is_id) {
-                fprintf(tfp, "%4d\t%-20s\t%-2d\t%-p\n",
-                                line,
-                                token.lexeme,
-                                token.token_type,
-                                token.attribute.ptr);
-        } else {
-                fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
-                                line,
-                                token.lexeme,
-                                token.token_type,
-                                token.attribute.attribute);
-        }
+        fprintf(tfp, "%4d\t%-20s\t%-2d\t%-d\n",
+                        line,
+                        token.lexeme,
+                        token.token_type,
+                        token.attribute);
 
         if (token.token_type == 99) {
                 fprintf(lfp, "LEXERR:   %-20s%s\n",
-                        error_codes[token.attribute.attribute- 1],
+                        error_codes[token.attribute - 1],
                         token.lexeme);
         }
 

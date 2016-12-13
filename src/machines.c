@@ -213,7 +213,7 @@ union Optional_Token int_machine(char *forward)
  * If the matched string is equivalent to a reserved word, returns the token
  * that represents the reserved word.
  * Otherwise, adds the ID to the symbol table if it is not already there,
- * and returns an Optional_Token containg the matched ID and a reference
+ * and returns an Optional_Token containing the matched ID and a reference
  * to it in the symbol table.
  *
  * Arguments: forward -> Pointer to memory location to begin reading from.
@@ -244,15 +244,7 @@ union Optional_Token id_res_machine(char *forward)
                 res.token.forward = forward;
                 return res;
         } else {
-                // REVIEW: Removed use of symbol table here for now.
-                // struct Symbol *sym_ptr = add_symbol(word);
-                struct Token token;
-                strcpy(token.lexeme, word);
-                token.token_type = ID;
-                token.is_id = 1;
-                // token.attribute.ptr = sym_ptr;
-                token.forward = forward;
-                return wrap_token(token);
+                return wrap_token(make_token(word, ID, 0, forward));
         }
 }
 

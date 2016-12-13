@@ -7,7 +7,7 @@
  * Fields: lexeme -> The literal from source that is this token.
  *         is_id -> 1 if this token represents an id, otherwise 0.
  *         token_type -> integer that represents this token's type.
- *         Attribute.attribute -> Integer that represents the type's attribute.
+ *         attribute -> Integer that represents the type's attribute.
  *         Attribute.ptr -> Pointer to a symbol in the symbol table.
  *                          Used if this token is an id.
  *         forward -> Pointer to next position in buffer after lexeme.
@@ -15,12 +15,8 @@
  */
 struct Token {
         char lexeme[20];
-        int is_id;
         int token_type;
-        union Attribute {
-                int attribute;
-                struct Symbol *ptr;
-        } attribute;
+        int attribute;
         char *forward;
 };
 

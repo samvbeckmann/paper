@@ -238,9 +238,9 @@ static struct Decoration type_call()
                 match(NUM);
                 match(BR_CLOSE);
                 if (num1.token_type == NUM && num2.token_type == NUM) {
-                        if (num1.attribute.attribute == REAL || num2.attribute.attribute == REAL) {
+                        if (num1.attribute == REAL || num2.attribute == REAL) {
                                 fprintf(lfp, "SEMERR:   Atempt to use real number for array length.\n");
-                        } else if (num1.attribute.attribute == INTEGER && num2.attribute.attribute == INTEGER) {
+                        } else if (num1.attribute == INTEGER && num2.attribute == INTEGER) {
                                 arrayLen = atoi(num2.lexeme) - atoi(num1.lexeme) + 1;
                                 ok = 1;
                         } else {
@@ -278,7 +278,7 @@ static struct Decoration standard_type_call()
         int attribute;
         switch(tok.token_type) {
         case STANDARD_TYPE:
-                attribute = tok.attribute.attribute;
+                attribute = tok.attribute;
                 match(STANDARD_TYPE);
                 if (attribute == 1) {
                         return make_decoration(INT, 4);
@@ -858,7 +858,7 @@ static struct Decoration simple_expression_tail_call(struct Decoration inherited
         int op;
         switch(tok.token_type) {
         case ADDOP:
-                op = tok.attribute.attribute;
+                op = tok.attribute;
                 match(ADDOP);
                 struct Decoration t_type = term_call();
                 switch (op) {
@@ -930,7 +930,7 @@ static struct Decoration term_tail_call(struct Decoration inherited)
         int op;
         switch(tok.token_type) {
         case MULOP:
-                op = tok.attribute.attribute;
+                op = tok.attribute;
                 match(MULOP);
                 struct Decoration fac_type = factor_call();
                 switch (op) {
@@ -1010,7 +1010,7 @@ static struct Decoration factor_call()
                 enum Type lex_type = get_type(id_tok.lexeme);
                 return factor_tail_call(make_type_decoration(lex_type));
         case NUM:
-                if (tok.attribute.attribute == 1)
+                if (tok.attribute == 1)
                         num_type = make_type_decoration(INT);
                 else {
                         num_type = make_type_decoration(REAL_TYPE);
@@ -1089,7 +1089,7 @@ static struct Decoration factor_tail_call(struct Decoration inherited)
 static void sign_call()
 {
         if (tok.token_type == ADDOP &&
-                        (tok.attribute.attribute == ADD || tok.attribute.attribute == SUB)) {
+                        (tok.attribute == ADD || tok.attribute == SUB)) {
                 match(ADDOP);
         } else {
                 synerr("'+' or '-'", tok.lexeme);

@@ -37,8 +37,7 @@ struct Token make_token(char lexeme[], int type, int attr, char *forward) {
         struct Token token;
         strcpy(token.lexeme, lexeme);
         token.token_type = type;
-        token.is_id = 0;
-        token.attribute.attribute = attr;
+        token.attribute = attr;
         token.forward = forward;
         return token;
 }
