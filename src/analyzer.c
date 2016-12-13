@@ -16,6 +16,12 @@ FILE *tfp;
 FILE *stp;
 struct Token tok;
 
+static void compile_file(char src[]);
+static char* get_next_line();
+static char* type_str(int token_type);
+static void parse();
+static struct Token match_token();
+
 int main(int argc, char *argv[])
 {
         for(int i = 1; i < argc; i++) {
