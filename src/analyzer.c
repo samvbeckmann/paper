@@ -6,6 +6,7 @@
 #include "symbols.h"
 #include "word_defs.h"
 #include "parser.h"
+#include "reserved_words.c"
 
 // Class variables
 int line;
@@ -50,9 +51,6 @@ const char * const error_codes[] = {
  */
 static void compile_file(char src[])
 {
-        global_sym_table = malloc(sizeof(struct Symbol));
-        global_sym_table -> next = NULL;
-
         forward_eye = malloc(sizeof(struct Symbol));
         eye = NULL;
 

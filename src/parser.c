@@ -228,7 +228,7 @@ static struct Decoration type_call()
         switch(tok.token_type) {
         case STANDARD_TYPE:
                 return standard_type_call();
-        case ARRAY: // REVIEW: Not sure about the logic of array type processing
+        case ARRAY:
                 match(ARRAY);
                 match(BR_OPEN);
                 struct Token num1 = tok;

@@ -2,6 +2,7 @@
 #include "word_defs.h"
 #include "symbols.h"
 #include "tokens.h"
+#include "reserved_words.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>

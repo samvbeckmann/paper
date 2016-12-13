@@ -2,6 +2,12 @@
 
 #include "word_defs.h"
 
+/** REVIEW: Documentation
+ * [synch description]
+ * @param  dir [description]
+ * @param  token_type [description]
+ * @return [description]
+ */
 int synch(enum Derivation dir, int token_type)
 {
         if (token_type == EOF_TYPE)

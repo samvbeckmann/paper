@@ -1,6 +1,9 @@
 #ifndef SYNCH_SET_H
 #define SYNCH_SET_H
 
+/**
+ * REVIEW: Documentation
+ */
 enum Derivation
 {
         program,

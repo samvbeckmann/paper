@@ -1,6 +1,7 @@
 #ifndef WORD_DEFS_H
 #define WORD_DEFS_H
 
+// TODO: Change values of this file into enums
 // token types
 #define PROGRAM 10
 #define FUNCTION 11
